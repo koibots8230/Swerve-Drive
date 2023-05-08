@@ -1,3 +1,3 @@
-# A-Fishy-Library
+# Swerve-Drive
 
-Template repository for storing common utilities.
+Repository for our off-season swerve chassis.
