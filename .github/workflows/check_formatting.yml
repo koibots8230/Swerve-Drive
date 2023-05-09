@@ -1,6 +1,8 @@
 name: Format
 
-on: [ push, pull_request ]
+on:
+  push:
+    branches: [ master ]
 
 jobs:
 
@@ -11,6 +13,5 @@ jobs:
       - uses: axel-op/googlejavaformat-action@v3
         with:
           args: "--replace"
-          skip-commit: true
-      - name: Print diffs
-        run: git --no-pager diff --exit-code
+          # Recommended if you use MacOS:
+          # github-token: ${{ secrets.GITHUB_TOKEN }}
