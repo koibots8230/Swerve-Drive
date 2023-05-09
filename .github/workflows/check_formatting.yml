@@ -1,8 +1,8 @@
 name: Format
 
 on:
-  push:
-    branches: [ main ]
+  pull_request:
+    types: [ ready_for_review, review_requested, reopened ]
 
 jobs:
 
