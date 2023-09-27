@@ -1,2 +1,5 @@
-package com.koibots.robot.subsystems.vision;public class Vision {
+package com.koibots.robot.subsystems.vision;
+
+public class Vision {
+
 }
