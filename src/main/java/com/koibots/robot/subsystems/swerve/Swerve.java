@@ -5,12 +5,15 @@ import com.koibots.robot.Robot;
 import edu.wpi.first.math.estimator.SwerveDrivePoseEstimator;
 import edu.wpi.first.math.filter.SlewRateLimiter;
 import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj2.command.CommandBase;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+
+import com.koibots.robot.constants.Constants;
 import com.koibots.robot.constants.Constants.DriveConstants;
 import org.littletonrobotics.junction.AutoLog;
 import org.littletonrobotics.junction.Logger;
@@ -138,10 +141,6 @@ public class Swerve extends SubsystemBase {
     }
 
     public class FieldOrientedDrive extends CommandBase {
-        private final SlewRateLimiter angularVelocityLimiter = new SlewRateLimiter(PI, -PI, 0);
-        private final SlewRateLimiter xVelocityLimiter = new SlewRateLimiter(4, -4, 0);
-        private final SlewRateLimiter yVelocityLimiter = new SlewRateLimiter(4, -4, 0);
-
         private final DoubleSupplier vxSupplier;
         private final DoubleSupplier vySupplier;
         private final DoubleSupplier angularVelocitySupplier;
@@ -160,14 +159,23 @@ public class Swerve extends SubsystemBase {
 
         @Override
         public void execute() {
-            setModuleStates(
-                    DRIVE_KINEMATICS.toSwerveModuleStates(
-                            new ChassisSpeeds(
-                                    xVelocityLimiter.calculate(vxSupplier.getAsDouble()),
-                                    yVelocityLimiter.calculate(vySupplier.getAsDouble()),
-                                    angularVelocityLimiter.calculate(angularVelocitySupplier.getAsDouble())
-                            ))
-            );
+            var setpointTwist = 
+                new Pose2d()
+                    .log(
+                        new Pose2d(
+                            vxSupplier.getAsDouble() * Constants.PERIOD,
+                            vySupplier.getAsDouble() * Constants.PERIOD,
+                            new Rotation2d(angularVelocitySupplier.getAsDouble() * Constants.DriveConstants.MAX_ANGULAR_SPEED * Constants.PERIOD)));
+            var adjustedSpeeds = 
+                new ChassisSpeeds(
+                    setpointTwist.dx / Constants.PERIOD,
+                    setpointTwist.dy / Constants.PERIOD,
+                    setpointTwist.dtheta / Constants.PERIOD);    
+
+            var targetModuleStates = DRIVE_KINEMATICS.toSwerveModuleStates(adjustedSpeeds);
+
+            desaturateWheelSpeeds(targetModuleStates, DriveConstants.MAX_SPEED_METERS_PER_SECOND);
+            setModuleStates(targetModuleStates);
         }
 
         @Override

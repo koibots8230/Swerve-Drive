@@ -4,6 +4,7 @@
 
 package com.koibots.robot;
 
+import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj.PS4Controller.Button;
 import edu.wpi.first.wpilibj2.command.Command;
@@ -24,6 +25,13 @@ public class RobotContainer {
   // The driver's controller
   XboxController driverController = new XboxController(OIConstants.DRIVER_CONTROLLER_PORT);
 
+  PIDController robotRotationController = new PIDController( // TODO: Find real constants
+          0.2,
+          0.2,
+          0.3,
+          0.02
+  );
+
   /**
    * The container for the robot. Contains subsystems, OI devices, and commands.
    */
@@ -36,7 +44,13 @@ public class RobotContainer {
             Swerve.get().new FieldOrientedDrive(
                     () -> applyDeadband(driverController.getLeftX(), 0.02),
                     () -> applyDeadband(driverController.getLeftY(), 0.02),
-                    () -> applyDeadband(driverController.getRightX(), 0.02)
+                    () -> {
+                        if (driverController.getPOV() != -1) {
+                            return applyDeadband(driverController.getRightX(), 0.02);
+                        } else {
+                            return robotRotationController.calculate(driverController.getPOV());
+                        }
+                    }
             )
     );
   }
