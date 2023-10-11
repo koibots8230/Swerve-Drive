@@ -108,7 +108,7 @@ gversion {
     className    = "BuildConstants"
     dateFormat   = "yyyy-MM-dd HH:mm:ss z"
     timeZone     = "America/New_York" // Use preferred time zone
-    indent       = "  "
+    indent       = "    "
 }
 
 // Setting up my Jar File. In this case, adding all libraries into the main jar ('fat jar')

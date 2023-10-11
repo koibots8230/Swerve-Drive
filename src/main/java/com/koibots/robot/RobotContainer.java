@@ -4,13 +4,22 @@
 
 package com.koibots.robot;
 
+import com.koibots.lib.math.SwerveUtils;
+import com.koibots.robot.command.SwerveAutonomousController;
 import edu.wpi.first.math.controller.PIDController;
+import edu.wpi.first.wpilibj.DriverStation;
+import edu.wpi.first.wpilibj.Filesystem;
 import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj.PS4Controller.Button;
-import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.RunCommand;
 import edu.wpi.first.wpilibj2.command.button.JoystickButton;
+import org.littletonrobotics.junction.networktables.LoggedDashboardChooser;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+
+import static com.koibots.robot.command.SwerveAutonomousController.pathToAutoName;
 import static com.koibots.robot.constants.Constants.OIConstants;
 import static com.koibots.robot.subsystems.Subsystems.Swerve;
 import static edu.wpi.first.math.MathUtil.applyDeadband;
@@ -27,32 +36,49 @@ public class RobotContainer {
 
   PIDController robotRotationController = new PIDController( // TODO: Find real constants
           0.2,
-          0.2,
-          0.3,
+          0,
+          0,
           0.02
   );
+
+  LoggedDashboardChooser<Path> autoChooser;
 
   /**
    * The container for the robot. Contains subsystems, OI devices, and commands.
    */
   public RobotContainer() {
-    // Configure the button bindings
-    configureButtonBindings();
+      try (var autos = Files.list(Filesystem.getDeployDirectory().toPath());) {
+          autos.forEach(
+                  (auto) ->  autoChooser.addOption(
+                          pathToAutoName(auto),
+                          auto
+                  )
+          );
+      } catch (IOException e) {
+          DriverStation.reportError("Failed to access deploy directory", false);
+      } finally {
+          autoChooser.addDefaultOption("None", null);
+      }
 
-    // Configure default commands
-    Swerve.get().setDefaultCommand(
-            Swerve.get().new FieldOrientedDrive(
-                    () -> applyDeadband(driverController.getLeftX(), 0.02),
-                    () -> applyDeadband(driverController.getLeftY(), 0.02),
-                    () -> {
-                        if (driverController.getPOV() != -1) {
-                            return applyDeadband(driverController.getRightX(), 0.02);
-                        } else {
-                            return robotRotationController.calculate(driverController.getPOV());
-                        }
-                    }
-            )
-    );
+      robotRotationController.enableContinuousInput(0, 360); // Allows PID loop to wrap at 360 degrees
+
+      // Configure the button bindings
+      configureButtonBindings();
+
+      // Configure default commands
+      Swerve.get().setDefaultCommand(
+              Swerve.get().new FieldOrientedDrive(
+                      () -> applyDeadband(driverController.getLeftX(), 0.02),
+                      () -> applyDeadband(driverController.getLeftY(), 0.02),
+                      () -> {
+                          if (driverController.getPOV() != -1) {
+                              return applyDeadband(driverController.getRightX(), 0.02);
+                          } else {
+                              return SwerveUtils.wrapAngle(robotRotationController.calculate(driverController.getPOV()));
+                          }
+                      }
+              )
+      );
   }
 
   /**
@@ -76,7 +102,7 @@ public class RobotContainer {
    *
    * @return the command to run in autonomous
    */
-  public Command getAutonomousCommand() {
-    return null;
+  public SwerveAutonomousController getAutonomousCommand() {
+    return new SwerveAutonomousController(autoChooser.get());
   }
 }

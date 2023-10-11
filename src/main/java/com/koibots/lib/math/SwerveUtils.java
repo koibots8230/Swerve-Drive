@@ -1,5 +1,14 @@
 package com.koibots.lib.math;
 
+import com.koibots.robot.constants.Constants;
+import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.kinematics.ChassisSpeeds;
+import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
+import edu.wpi.first.math.kinematics.SwerveModuleState;
+
+import static edu.wpi.first.math.kinematics.SwerveDriveKinematics.desaturateWheelSpeeds;
+
 public class SwerveUtils {
 
   /**
@@ -30,8 +39,8 @@ public class SwerveUtils {
    * This value will always lie in the range 0 to 2*PI (exclusive).
    */
   public static double StepTowardsCircular(double _current, double _target, double _stepsize) {
-    _current = WrapAngle(_current);
-    _target = WrapAngle(_target);
+    _current = wrapAngle(_current);
+    _target = wrapAngle(_target);
 
     double stepDirection = Math.signum(_target - _current);
     double difference = Math.abs(_current - _target);
@@ -45,7 +54,7 @@ public class SwerveUtils {
         return _target;
       }
       else {
-        return WrapAngle(_current - stepDirection * _stepsize); //this will handle wrapping gracefully
+        return wrapAngle(_current - stepDirection * _stepsize); //this will handle wrapping gracefully
       }
 
     }
@@ -70,20 +79,52 @@ public class SwerveUtils {
    * @param _angle The angle (in radians) to wrap.  Can be positive or negative and can lie multiple wraps outside the output range.
    * @return An angle (in radians) from 0 and 2*PI (exclusive).
    */
-  public static double WrapAngle(double _angle) {
+  public static double wrapAngle(double _angle) {
     double twoPi = 2*Math.PI;
 
-    if (_angle == twoPi) { // Handle this case separately to avoid floating point errors with the floor after the division in the case below
-      return 0.0;
+    return _angle % twoPi;
+  }
+
+  /**
+   * Corrects for swerve skew in first order kinematics described
+   * <a href="https://www.chiefdelphi.com/t/whitepaper-swerve-drive-skew-and-second-order-kinematics/416964">here</a>
+   * @param speeds The speeds the robot should be set to
+   * @param kinematics
+   * @param periodSeconds The time in seconds between calls of this function
+   * @param maxLinearSpeed The max speed the robot can move in a straight line
+   * @return The corrected states to set swerve modules to
+   */
+  public static SwerveModuleState[] secondOrderKinematics(
+          ChassisSpeeds speeds,
+          SwerveDriveKinematics kinematics,
+          double periodSeconds,
+          double maxLinearSpeed,
+          SwerveModuleState[] previousStates) {
+    var setpointTwist = new Pose2d()
+            .log(
+                    new Pose2d(
+                            speeds.vxMetersPerSecond * periodSeconds,
+                            speeds.vyMetersPerSecond * periodSeconds,
+                            new Rotation2d(speeds.omegaRadiansPerSecond * periodSeconds)));
+
+    var adjustedSpeeds =
+            new edu.wpi.first.math.kinematics.ChassisSpeeds(
+                    setpointTwist.dx / periodSeconds,
+                    setpointTwist.dy / periodSeconds,
+                    setpointTwist.dtheta / periodSeconds);
+
+    var targetModuleStates = kinematics.toSwerveModuleStates(adjustedSpeeds);
+
+    desaturateWheelSpeeds(targetModuleStates, maxLinearSpeed);
+
+    if (adjustedSpeeds.vxMetersPerSecond == 0.0
+            && adjustedSpeeds.vyMetersPerSecond == 0.0
+            && adjustedSpeeds.omegaRadiansPerSecond == 0) {
+        for (int i = 0; i < 4; i++) {
+            targetModuleStates[i] = new SwerveModuleState(0.0, previousStates[i].angle);
+        }
     }
-    else if (_angle > twoPi) {
-      return _angle - twoPi*Math.floor(_angle / twoPi);
-    }
-    else if (_angle < 0.0) {
-      return _angle + twoPi*(Math.floor((-_angle) / twoPi)+1);
-    }
-    else {
-      return _angle;
-    }
+
+    return targetModuleStates;
   }
 }

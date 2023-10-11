@@ -3,33 +3,30 @@ package com.koibots.robot.subsystems.swerve;
 import com.koibots.lib.hardware.NavX;
 import com.koibots.robot.Robot;
 import edu.wpi.first.math.estimator.SwerveDrivePoseEstimator;
-import edu.wpi.first.math.filter.SlewRateLimiter;
 import edu.wpi.first.math.geometry.Pose2d;
-import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj2.command.CommandBase;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
-
-import com.koibots.robot.constants.Constants;
 import com.koibots.robot.constants.Constants.DriveConstants;
-import org.littletonrobotics.junction.AutoLog;
 import org.littletonrobotics.junction.Logger;
-
 import java.util.function.DoubleSupplier;
 
-import static com.koibots.robot.constants.Constants.DriveConstants.DRIVE_KINEMATICS;
+import static com.koibots.lib.math.SwerveUtils.secondOrderKinematics;
+import static com.koibots.robot.constants.Constants.DriveConstants.*;
+import static com.koibots.robot.constants.Constants.PERIOD;
 import static edu.wpi.first.math.geometry.Rotation2d.fromDegrees;
 import static edu.wpi.first.math.kinematics.SwerveDriveKinematics.desaturateWheelSpeeds;
-import static java.lang.StrictMath.PI;
 
 public class Swerve extends SubsystemBase {
     private final SwerveModuleIO frontLeft;
     private final SwerveModuleIO frontRight;
     private final SwerveModuleIO rearLeft;
     private final SwerveModuleIO rearRight;
+
+
 
     private final SwerveModuleIOStateAutoLogged frontLeftState = new SwerveModuleIOStateAutoLogged();
     private final SwerveModuleIOStateAutoLogged frontRightState = new SwerveModuleIOStateAutoLogged();
@@ -54,6 +51,8 @@ public class Swerve extends SubsystemBase {
      * @author Caleb O'Neal
      */
     public Swerve() {
+        odometry.
+
         if (Robot.isReal()) {
             frontLeft = new SwerveModuleIOMaxSwerve(
                     DriveConstants.FRONT_LEFT_DRIVING_CAN_ID,
@@ -144,6 +143,7 @@ public class Swerve extends SubsystemBase {
         private final DoubleSupplier vxSupplier;
         private final DoubleSupplier vySupplier;
         private final DoubleSupplier angularVelocitySupplier;
+        private SwerveModuleState[] previousStates = new SwerveModuleState[4];
 
         public FieldOrientedDrive(
                 DoubleSupplier vxSupplier,
@@ -159,23 +159,21 @@ public class Swerve extends SubsystemBase {
 
         @Override
         public void execute() {
-            var setpointTwist = 
-                new Pose2d()
-                    .log(
-                        new Pose2d(
-                            vxSupplier.getAsDouble() * Constants.PERIOD,
-                            vySupplier.getAsDouble() * Constants.PERIOD,
-                            new Rotation2d(angularVelocitySupplier.getAsDouble() * Constants.DriveConstants.MAX_ANGULAR_SPEED * Constants.PERIOD)));
-            var adjustedSpeeds = 
-                new ChassisSpeeds(
-                    setpointTwist.dx / Constants.PERIOD,
-                    setpointTwist.dy / Constants.PERIOD,
-                    setpointTwist.dtheta / Constants.PERIOD);    
+            var currentSetpoints = secondOrderKinematics(
+                    new ChassisSpeeds(
+                            vxSupplier.getAsDouble(),
+                            vySupplier.getAsDouble(),
+                            angularVelocitySupplier.getAsDouble() * MAX_ANGULAR_SPEED
+                    ),
+                    DRIVE_KINEMATICS,
+                    PERIOD,
+                    MAX_SPEED_METERS_PER_SECOND,
+                    previousStates
+            );
 
-            var targetModuleStates = DRIVE_KINEMATICS.toSwerveModuleStates(adjustedSpeeds);
+            previousStates = currentSetpoints;
 
-            desaturateWheelSpeeds(targetModuleStates, DriveConstants.MAX_SPEED_METERS_PER_SECOND);
-            setModuleStates(targetModuleStates);
+            setModuleStates(currentSetpoints);
         }
 
         @Override
