@@ -5,12 +5,12 @@
 package com.koibots.robot;
 
 import com.koibots.lib.math.SwerveUtils;
-import com.koibots.robot.command.SwerveAutonomousController;
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.Filesystem;
 import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj.PS4Controller.Button;
+import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.RunCommand;
 import edu.wpi.first.wpilibj2.command.button.JoystickButton;
 import org.littletonrobotics.junction.networktables.LoggedDashboardChooser;
@@ -19,7 +19,6 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
-import static com.koibots.robot.command.SwerveAutonomousController.pathToAutoName;
 import static com.koibots.robot.constants.Constants.OIConstants;
 import static com.koibots.robot.subsystems.Subsystems.Swerve;
 import static edu.wpi.first.math.MathUtil.applyDeadband;
@@ -47,6 +46,7 @@ public class RobotContainer {
    * The container for the robot. Contains subsystems, OI devices, and commands.
    */
   public RobotContainer() {
+      /*
       try (var autos = Files.list(Filesystem.getDeployDirectory().toPath());) {
           autos.forEach(
                   (auto) ->  autoChooser.addOption(
@@ -58,7 +58,7 @@ public class RobotContainer {
           DriverStation.reportError("Failed to access deploy directory", false);
       } finally {
           autoChooser.addDefaultOption("None", null);
-      }
+      }*/
 
       robotRotationController.enableContinuousInput(0, 360); // Allows PID loop to wrap at 360 degrees
 
@@ -102,7 +102,8 @@ public class RobotContainer {
    *
    * @return the command to run in autonomous
    */
-  public SwerveAutonomousController getAutonomousCommand() {
-    return new SwerveAutonomousController(autoChooser.get());
+  public Command getAutonomousCommand() {
+      return null;
+    // return new SwerveAutonomousController(autoChooser.get());
   }
 }

@@ -4,9 +4,16 @@
 
 package com.koibots.robot;
 
+import edu.wpi.first.wpilibj.PowerDistribution;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
+import org.littletonrobotics.junction.LogFileUtil;
 import org.littletonrobotics.junction.LoggedRobot;
+import org.littletonrobotics.junction.Logger;
+import org.littletonrobotics.junction.inputs.LoggedPowerDistribution;
+import org.littletonrobotics.junction.networktables.NT4Publisher;
+import org.littletonrobotics.junction.wpilog.WPILOGReader;
+import org.littletonrobotics.junction.wpilog.WPILOGWriter;
 
 public class Robot extends LoggedRobot {
     private Command autonomousCommand;
@@ -19,6 +26,23 @@ public class Robot extends LoggedRobot {
      */
     @Override
     public void robotInit() {
+        Logger.getInstance().recordMetadata("RobotName", "Swerve");
+        Logger.getInstance().
+        Logger.getInstance().recordMetadata("GITSha", BuildConstants.GIT_SHA);
+
+        if (isReal()) {
+
+            Logger.getInstance().addDataReceiver(new NT4Publisher());
+
+            LoggedPowerDistribution.getInstance(0, PowerDistribution.ModuleType.kRev);
+
+        } else {
+            // setUseTiming(false); // Runs robot logger as fast as possible
+            Logger.getInstance().addDataReceiver(new NT4Publisher());
+        }
+
+        Logger.getInstance().start();
+
         // Instantiate our RobotContainer.
         // This will perform all our button bindings, and put our
         // autonomous chooser on the dashboard.
@@ -92,6 +116,10 @@ public class Robot extends LoggedRobot {
     public void testInit() {
         // Cancels all running commands at the start of test mode.
         CommandScheduler.getInstance().cancelAll();
+
+        String logPath = LogFileUtil.findReplayLog();
+        Logger.getInstance().setReplaySource(new WPILOGReader(logPath));
+        Logger.getInstance().addDataReceiver(new WPILOGWriter(LogFileUtil.addPathSuffix(logPath, "_sim")));
     }
 
     /** This function is called periodically during test mode. */

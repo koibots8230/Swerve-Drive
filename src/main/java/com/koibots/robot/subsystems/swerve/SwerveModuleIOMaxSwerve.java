@@ -103,6 +103,10 @@ public class SwerveModuleIOMaxSwerve implements SwerveModuleIO {
         state.velocityMetersPerSecond = drivingEncoder.getVelocity();
         state.angle = azimuthEncoder.getPosition() - chassisAngularOffset;
         state.distance = drivingEncoder.getPosition();
+        state.moduleState = new SwerveModuleState(
+                drivingEncoder.getVelocity(),
+                new Rotation2d(azimuthEncoder.getPosition())
+        );
     }
 
     /**

@@ -8,6 +8,7 @@ import edu.wpi.first.math.numbers.N4;
 import edu.wpi.first.math.system.LinearSystem;
 import edu.wpi.first.math.system.LinearSystemLoop;
 import edu.wpi.first.math.system.plant.LinearSystemId;
+import edu.wpi.first.math.trajectory.Trajectory;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj2.command.*;
 
@@ -20,10 +21,10 @@ import static com.koibots.robot.subsystems.Subsystems.Swerve;
 
 public class SwerveAutonomousController extends PrintCommand {
 
-
+    Trajectory x = new Trajectory();
     Scanner autoPath;
-    LinearSystem x = LinearSystemId.identifyVelocitySystem()
-    LinearQuadraticRegulator
+
+    SwerveControllerCommand command = null; // new SwerveControllerCommand();
 
 
     /**

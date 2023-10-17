@@ -11,6 +11,7 @@ public interface SwerveModuleIO {
         double velocityMetersPerSecond;
         double angle;
         double distance;
+        SwerveModuleState moduleState;
 
         public SwerveModulePosition getModulePosition() {
             return new SwerveModulePosition(distance, Rotation2d.fromDegrees(angle));
