@@ -2,7 +2,6 @@ package com.koibots.robot.subsystems.swerve;
 
 import com.koibots.lib.hardware.NavX;
 import com.koibots.robot.Robot;
-import edu.wpi.first.hal.HALUtil;
 import edu.wpi.first.math.estimator.SwerveDrivePoseEstimator;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
@@ -15,7 +14,6 @@ import edu.wpi.first.wpilibj2.command.CommandBase;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import com.koibots.robot.constants.Constants.DriveConstants;
 import org.littletonrobotics.junction.Logger;
-import org.littletonrobotics.junction.inputs.LoggedDriverStation;
 
 import java.util.function.DoubleSupplier;
 
@@ -40,7 +38,7 @@ public class Swerve extends SubsystemBase {
 
     private final SwerveDrivePoseEstimator odometry = new SwerveDrivePoseEstimator(
             DRIVE_KINEMATICS,
-            fromDegrees(NavX.getInstance().getAngle()),
+            fromDegrees(NavX.get().getAngle()),
             new SwerveModulePosition[] {
                     frontLeftState.getModulePosition(),
                     frontRightState.getModulePosition(),
@@ -62,7 +60,7 @@ public class Swerve extends SubsystemBase {
                 Notifier odometryUpdater = new Notifier(() ->
                     odometry.updateWithTime(
                             Timer.getFPGATimestamp() - odometryTimeOffset,
-                            fromDegrees(NavX.getInstance().getAngle()),
+                            fromDegrees(NavX.get().getAngle()),
                             new SwerveModulePosition[]{
                                     frontLeftState.getModulePosition(),
                                     frontRightState.getModulePosition(),
@@ -123,7 +121,7 @@ public class Swerve extends SubsystemBase {
     public void resetOdometry(Pose2d pose) {
         odometryTimeOffset = Timer.getFPGATimestamp();
 
-        odometry.resetPosition(fromDegrees(NavX.getInstance().getAngle()),
+        odometry.resetPosition(fromDegrees(NavX.get().getAngle()),
                 new SwerveModulePosition[]{
                         frontLeftState.getModulePosition(),
                         frontRightState.getModulePosition(),

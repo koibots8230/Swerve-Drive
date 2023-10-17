@@ -27,7 +27,6 @@ public class Robot extends LoggedRobot {
     @Override
     public void robotInit() {
         Logger.getInstance().recordMetadata("RobotName", "Swerve");
-        Logger.getInstance().
         Logger.getInstance().recordMetadata("GITSha", BuildConstants.GIT_SHA);
 
         if (isReal()) {
