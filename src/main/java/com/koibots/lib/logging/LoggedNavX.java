@@ -17,13 +17,57 @@ public class LoggedNavX {
 
     private final NavXInputs inputs = new NavXInputs();
 
-    public static class NavXInputs implements LoggableInputs {
-        double altitude = 0;
+    private LoggedNavX() {
+        inputs.firmwareVersion = NavX.get().getFirmwareVersion();
+    }
 
+    public static class NavXInputs implements LoggableInputs {
+        double altitude;
+        double angleDegrees;
+        int accelFullScaleRangeG;
+        String firmwareVersion;
+        double angleAdjustment;
+        double actualUpdateRate;
+        double barometricPressure;
+        String boardYawAxis;
+        float compassHeading;
+        double displacementX;
+        double displacementY;
+        double displacementZ;
+        double fusedHeading;
+        double gyroFullScaleRangeDPS;
+        long lastSensorTimestamp;
+        double pitch;
+        double pressure;
+        double quaternionW;
+        double quaternionX;
+        double quaternionY;
+        double quaternionZ;
+        double rate;
+        double rawAccelX;
+        double rawAccelY;
+        double rawAccelZ;
+        double rawGyroX;
+        double rawGyroY;
+        double rawGyroZ;
+        double rawMagX;
+        double rawMagY;
+        double rawMagZ;
+        double requestedUpdateRate;
+        double roll;
+        double tempC;
+        double updateCount;
+        double velocityX;
+        double velocityY;
+        double velocityZ;
+        double worldLinearAccelX;
+        double worldLinearAccelY;
+        double worldLinearAccelZ;
+        double yaw;
 
         @Override
         public void toLog(LogTable table) {
-
+            //TODO do these methods
         }
 
         @Override
@@ -33,51 +77,50 @@ public class LoggedNavX {
     }
 
     public void periodic() {
-        inputs. = NavX.get().getAltitude();
-        inputs. = NavX.get().getAngle();
-        inputs. = NavX.get().getAccelFullScaleRangeG();
-        inputs. = NavX.get().getFirmwareVersion();
-        inputs. = NavX.get().getAngleAdjustment();
-        inputs. = NavX.get().getActualUpdateRate();
-        inputs. = NavX.get().getBarometricPressure();
-        inputs. = NavX.get().getBoardYawAxis();
-        inputs. = NavX.get().getCompassHeading();
-        inputs. = NavX.get().getDisplacementX();
-        inputs. = NavX.get().getDisplacementY();
-        inputs. = NavX.get().getDisplacementZ();
-        inputs. = NavX.get().getFusedHeading();
-        inputs. = NavX.get().getGyroFullScaleRangeDPS();
-        inputs. = NavX.get().getLastSensorTimestamp();
-        inputs. = NavX.get().getPitch();
-        inputs. = NavX.get().getPressure();
-        inputs. = NavX.get().getQuaternionW();
-        inputs. = NavX.get().getQuaternionX();
-        inputs. = NavX.get().getQuaternionY();
-        inputs. = NavX.get().getQuaternionZ();
-        inputs. = NavX.get().getRate();
-        inputs. = NavX.get().getRawAccelX();
-        inputs. = NavX.get().getRawAccelY();
-        inputs. = NavX.get().getRawAccelZ();
-        inputs. = NavX.get().getRawGyroX();
-        inputs. = NavX.get().getRawGyroY();
-        inputs. = NavX.get().getRawGyroZ();
-        inputs. = NavX.get().getRawMagX();
-        inputs. = NavX.get().getRawMagY();
-        inputs. = NavX.get().getRawMagZ();
-        inputs. = NavX.get().getRequestedUpdateRate();
-        inputs. = NavX.get().getRoll();
-        inputs. = NavX.get().getTempC();
-        inputs. = NavX.get().getUpdateCount();
-        inputs. = NavX.get().getVelocityX();
-        inputs. = NavX.get().getVelocityY();
-        inputs. = NavX.get().getVelocityZ();
-        inputs. = NavX.get().getWorldLinearAccelX();
-        inputs. = NavX.get().getWorldLinearAccelY();
-        inputs. = NavX.get().getWorldLinearAccelZ();
-        inputs. = NavX.get().getYaw();
+        inputs.altitude = NavX.get().getAltitude();
+        inputs.angleDegrees = NavX.get().getAngle();
+        inputs.accelFullScaleRangeG = NavX.get().getAccelFullScaleRangeG();
+        inputs.angleAdjustment = NavX.get().getAngleAdjustment();
+        inputs.actualUpdateRate = NavX.get().getActualUpdateRate();
+        inputs.barometricPressure = NavX.get().getBarometricPressure();
+        inputs.boardYawAxis = NavX.get().getBoardYawAxis().toString();
+        inputs.compassHeading = NavX.get().getCompassHeading();
+        inputs.displacementX = NavX.get().getDisplacementX();
+        inputs.displacementY = NavX.get().getDisplacementY();
+        inputs.displacementZ = NavX.get().getDisplacementZ();
+        inputs.fusedHeading = NavX.get().getFusedHeading();
+        inputs.gyroFullScaleRangeDPS = NavX.get().getGyroFullScaleRangeDPS();
+        inputs.lastSensorTimestamp = NavX.get().getLastSensorTimestamp();
+        inputs.pitch = NavX.get().getPitch();
+        inputs.pressure = NavX.get().getPressure();
+        inputs.quaternionW = NavX.get().getQuaternionW();
+        inputs.quaternionX = NavX.get().getQuaternionX();
+        inputs.quaternionY = NavX.get().getQuaternionY();
+        inputs.quaternionZ = NavX.get().getQuaternionZ();
+        inputs.rate = NavX.get().getRate();
+        inputs.rawAccelX = NavX.get().getRawAccelX();
+        inputs.rawAccelY = NavX.get().getRawAccelY();
+        inputs.rawAccelZ = NavX.get().getRawAccelZ();
+        inputs.rawGyroX = NavX.get().getRawGyroX();
+        inputs.rawGyroY = NavX.get().getRawGyroY();
+        inputs.rawGyroZ = NavX.get().getRawGyroZ();
+        inputs.rawMagX = NavX.get().getRawMagX();
+        inputs.rawMagY = NavX.get().getRawMagY();
+        inputs.rawMagZ = NavX.get().getRawMagZ();
+        inputs.requestedUpdateRate = NavX.get().getRequestedUpdateRate();
+        inputs.roll = NavX.get().getRoll();
+        inputs.tempC = NavX.get().getTempC();
+        inputs.updateCount = NavX.get().getUpdateCount();
+        inputs.velocityX = NavX.get().getVelocityX();
+        inputs.velocityY = NavX.get().getVelocityY();
+        inputs.velocityZ = NavX.get().getVelocityZ();
+        inputs.worldLinearAccelX = NavX.get().getWorldLinearAccelX();
+        inputs.worldLinearAccelY = NavX.get().getWorldLinearAccelY();
+        inputs.worldLinearAccelZ = NavX.get().getWorldLinearAccelZ();
+        inputs.yaw = NavX.get().getYaw();
     }
 
     public NavXInputs getInputs() {
-        return inputs
+        return inputs;
     }
 }

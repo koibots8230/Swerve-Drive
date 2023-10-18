@@ -15,6 +15,6 @@ public class NavX extends AHRS {
     }
 
     private NavX() {
-        super(SerialPort.Port.kMXP);
+        super(SerialPort.Port.kMXP, SerialDataType.kProcessedData, (byte) 200);
     }
 }

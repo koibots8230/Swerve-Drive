@@ -33,7 +33,7 @@ public class LoggedSparkMax {
 
         @Override
         public void toLog(LogTable table) {
-
+            // TODO Do these methods
         }
 
         @Override
@@ -53,5 +53,13 @@ public class LoggedSparkMax {
         inputs.openLoopRampRate = sparkMax.getOpenLoopRampRate();
         inputs.outputCurrent = sparkMax.getOutputCurrent();
         inputs.voltageCompensationNominalVoltage = sparkMax.getVoltageCompensationNominalVoltage();
+    }
+
+    public SparkMaxInputs getInputs() {
+        return inputs;
+    }
+
+    public LoggedSparkMaxPID logPID() {
+        return new LoggedSparkMaxPID(sparkMax.getPIDController());
     }
 }

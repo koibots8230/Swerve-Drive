@@ -8,6 +8,7 @@ import com.revrobotics.RelativeEncoder;
 import com.revrobotics.SparkMaxAbsoluteEncoder;
 import com.revrobotics.SparkMaxPIDController;
 import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
 
 public class SwerveModuleIOMaxSwerve implements SwerveModuleIO {
@@ -100,13 +101,8 @@ public class SwerveModuleIOMaxSwerve implements SwerveModuleIO {
 
     @Override
     public void updateState(SwerveModuleIOState state) {
-        state.velocityMetersPerSecond = drivingEncoder.getVelocity();
         state.angle = azimuthEncoder.getPosition() - chassisAngularOffset;
         state.distance = drivingEncoder.getPosition();
-        state.moduleState = new SwerveModuleState(
-                drivingEncoder.getVelocity(),
-                new Rotation2d(azimuthEncoder.getPosition())
-        );
     }
 
     /**
@@ -136,6 +132,14 @@ public class SwerveModuleIOMaxSwerve implements SwerveModuleIO {
     @Override
     public void resetEncoders() {
         drivingEncoder.setPosition(0);
+    }
+
+    @Override
+    public SwerveModulePosition getModulePosition() {
+        return new SwerveModulePosition(
+                this.drivingEncoder.getPosition(),
+                new Rotation2d(this.azimuthEncoder.getPosition())
+        );
     }
 
 }

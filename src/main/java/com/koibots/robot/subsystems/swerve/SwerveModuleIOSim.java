@@ -1,8 +1,11 @@
 package com.koibots.robot.subsystems.swerve;
 
+import com.revrobotics.REVPhysicsSim;
+import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
 
 public class SwerveModuleIOSim implements SwerveModuleIO {
+
 
     protected SwerveModuleIOSim() {
 
@@ -21,5 +24,10 @@ public class SwerveModuleIOSim implements SwerveModuleIO {
     @Override
     public void resetEncoders() {
 
+    }
+
+    @Override
+    public SwerveModulePosition getModulePosition() {
+        return null;
     }
 }

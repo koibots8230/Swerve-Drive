@@ -8,18 +8,11 @@ import org.littletonrobotics.junction.AutoLog;
 public interface SwerveModuleIO {
     @AutoLog
     class SwerveModuleIOState {
-        double velocityMetersPerSecond;
         double angle;
         double distance;
-        SwerveModuleState moduleState;
 
-        public SwerveModulePosition getModulePosition() {
-            return new SwerveModulePosition(distance, Rotation2d.fromDegrees(angle));
-        }
 
-        public SwerveModuleState getModuleState() {
-            return new SwerveModuleState(velocityMetersPerSecond, Rotation2d.fromDegrees(angle));
-        }
+
     }
 
     void updateState(SwerveModuleIOState state);
@@ -27,5 +20,7 @@ public interface SwerveModuleIO {
     void setDesiredState(SwerveModuleState state);
 
     void resetEncoders();
+
+    SwerveModulePosition getModulePosition();
 
 }

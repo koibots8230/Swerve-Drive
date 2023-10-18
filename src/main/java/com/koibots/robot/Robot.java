@@ -4,6 +4,7 @@
 
 package com.koibots.robot;
 
+import com.revrobotics.REVPhysicsSim;
 import edu.wpi.first.wpilibj.PowerDistribution;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
@@ -17,7 +18,6 @@ import org.littletonrobotics.junction.wpilog.WPILOGWriter;
 
 public class Robot extends LoggedRobot {
     private Command autonomousCommand;
-
     private RobotContainer robotContainer;
 
     /**
@@ -78,7 +78,6 @@ public class Robot extends LoggedRobot {
     @Override
     public void autonomousInit() {
         autonomousCommand = robotContainer.getAutonomousCommand();
-
         /*
          * String autoSelected = SmartDashboard.getString("Auto Selector",
          * "Default"); switch(autoSelected) { case "My Auto": autonomousCommand
@@ -97,7 +96,7 @@ public class Robot extends LoggedRobot {
     public void autonomousPeriodic() {}
 
     @Override
-    public void teleopInit() {
+    public void autonomousExit() {
         // This makes sure that the autonomous stops running when
         // teleop starts running. If you want the autonomous to
         // continue until interrupted by another command, remove
@@ -105,6 +104,11 @@ public class Robot extends LoggedRobot {
         if (autonomousCommand != null) {
             autonomousCommand.cancel();
         }
+    }
+
+    @Override
+    public void teleopInit() {
+        super.teleopInit();
     }
 
     /** This function is called periodically during operator control. */
@@ -124,4 +128,14 @@ public class Robot extends LoggedRobot {
     /** This function is called periodically during test mode. */
     @Override
     public void testPeriodic() {}
+
+    @Override
+    public void simulationInit() {
+        super.simulationInit();
+    }
+
+    @Override
+    public void simulationPeriodic() {
+        REVPhysicsSim.getInstance().run();
+    }
 }
