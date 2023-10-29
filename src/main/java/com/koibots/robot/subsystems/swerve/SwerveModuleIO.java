@@ -10,9 +10,6 @@ public interface SwerveModuleIO {
     class SwerveModuleIOState {
         double angle;
         double distance;
-
-
-
     }
 
     void updateState(SwerveModuleIOState state);
@@ -22,5 +19,7 @@ public interface SwerveModuleIO {
     void resetEncoders();
 
     SwerveModulePosition getModulePosition();
+
+    SwerveModuleState getModuleState();
 
 }

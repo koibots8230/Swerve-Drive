@@ -5,7 +5,11 @@
 package com.koibots.robot;
 
 import com.revrobotics.REVPhysicsSim;
+import edu.wpi.first.networktables.NetworkTable;
 import edu.wpi.first.wpilibj.PowerDistribution;
+import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
+import edu.wpi.first.wpilibj.shuffleboard.ShuffleboardComponent;
+import edu.wpi.first.wpilibj.smartdashboard.Field2d;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import org.littletonrobotics.junction.LogFileUtil;
@@ -108,7 +112,7 @@ public class Robot extends LoggedRobot {
 
     @Override
     public void teleopInit() {
-        super.teleopInit();
+        robotContainer.configureButtonBindings();
     }
 
     /** This function is called periodically during operator control. */

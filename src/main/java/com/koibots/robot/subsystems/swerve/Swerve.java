@@ -2,32 +2,24 @@ package com.koibots.robot.subsystems.swerve;
 
 import com.koibots.lib.hardware.NavX;
 import com.koibots.robot.Robot;
+import com.koibots.robot.constants.Constants.DriveConstants;
 import com.koibots.robot.constants.ControlConstants;
+import edu.wpi.first.hal.SimDouble;
+import edu.wpi.first.hal.simulation.SimDeviceDataJNI;
 import edu.wpi.first.math.controller.HolonomicDriveController;
 import edu.wpi.first.math.estimator.SwerveDrivePoseEstimator;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
-import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
-import edu.wpi.first.math.trajectory.Trajectory;
-import edu.wpi.first.math.trajectory.TrajectoryUtil;
 import edu.wpi.first.wpilibj.DriverStation;
-import edu.wpi.first.wpilibj.Filesystem;
 import edu.wpi.first.wpilibj.Notifier;
 import edu.wpi.first.wpilibj.Timer;
-import edu.wpi.first.wpilibj2.command.CommandBase;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
-import com.koibots.robot.constants.Constants.DriveConstants;
 import org.littletonrobotics.junction.Logger;
 
-import java.io.IOException;
-import java.util.function.DoubleSupplier;
-
-import static com.koibots.lib.math.SwerveUtils.secondOrderKinematics;
-import static com.koibots.robot.constants.Constants.DriveConstants.*;
-import static com.koibots.robot.constants.Constants.PERIOD;
+import static com.koibots.robot.constants.Constants.DriveConstants.DRIVE_KINEMATICS;
 import static edu.wpi.first.math.geometry.Rotation2d.fromDegrees;
 import static edu.wpi.first.math.kinematics.SwerveDriveKinematics.desaturateWheelSpeeds;
 
@@ -43,11 +35,13 @@ public class Swerve extends SubsystemBase {
     private final SwerveModuleIOStateAutoLogged rearRightState = new SwerveModuleIOStateAutoLogged();
     private double odometryTimeOffset;
     private final SwerveDrivePoseEstimator odometry;
-    private final HolonomicDriveController trajectoryFollower = new HolonomicDriveController(
+    public final HolonomicDriveController trajectoryFollower = new HolonomicDriveController(
             ControlConstants.xController,
             ControlConstants.yController,
             ControlConstants.thetaController
     );
+
+    SimDouble gyroYaw;
 
     /**
      * <p>Forward is 0 heading</p>
@@ -76,10 +70,32 @@ public class Swerve extends SubsystemBase {
                     DriveConstants.REAR_RIGHT_TURNING_CAN_ID,
                     DriveConstants.BACK_RIGHT_CHASSIS_ANGULAR_OFFSET);
         } else {
-            frontLeft = new SwerveModuleIOSim();
-            frontRight = new SwerveModuleIOSim();
-            rearLeft = new SwerveModuleIOSim();
-            rearRight = new SwerveModuleIOSim();
+            frontLeft = new SwerveModuleIOSim(
+                    DriveConstants.FRONT_LEFT_DRIVING_CAN_ID,
+                    DriveConstants.FRONT_LEFT_TURNING_CAN_ID,
+                    DriveConstants.FRONT_LEFT_CHASSIS_ANGULAR_OFFSET);
+
+            frontRight = new SwerveModuleIOSim(
+                    DriveConstants.FRONT_RIGHT_DRIVING_CAN_ID,
+                    DriveConstants.FRONT_RIGHT_TURNING_CAN_ID,
+                    DriveConstants.FRONT_RIGHT_CHASSIS_ANGULAR_OFFSET);
+
+            rearLeft = new SwerveModuleIOSim(
+                    DriveConstants.REAR_LEFT_DRIVING_CAN_ID,
+                    DriveConstants.REAR_LEFT_TURNING_CAN_ID,
+                    DriveConstants.BACK_LEFT_CHASSIS_ANGULAR_OFFSET);
+
+            rearRight = new SwerveModuleIOSim(
+                    DriveConstants.REAR_RIGHT_DRIVING_CAN_ID,
+                    DriveConstants.REAR_RIGHT_TURNING_CAN_ID,
+                    DriveConstants.BACK_RIGHT_CHASSIS_ANGULAR_OFFSET);
+
+            gyroYaw = new SimDouble(
+                    SimDeviceDataJNI.getSimValueHandle(
+                            SimDeviceDataJNI.getSimDeviceHandle("navX-Sensor[0]"),
+                            "Yaw"
+                    )
+            );
         }
 
         odometry = new SwerveDrivePoseEstimator(
@@ -133,6 +149,21 @@ public class Swerve extends SubsystemBase {
 
     }
 
+    @Override
+    public void simulationPeriodic() {
+        gyroYaw.set(odometry.getEstimatedPosition().getRotation().getDegrees());
+
+        Logger.getInstance().recordOutput("Sim/Odometry", odometry.getEstimatedPosition());
+        Logger.getInstance().recordOutput("Sim/FrontLeftModule", frontLeft.getModuleState());
+        Logger.getInstance().recordOutput("Sim/FrontRightModule", frontRight.getModuleState());
+        Logger.getInstance().recordOutput("Sim/RearLeftModule", rearLeft.getModuleState());
+        Logger.getInstance().recordOutput("Sim/RearRightModule", rearRight.getModuleState());
+    }
+
+    public Pose2d getEstimatedPosition() {
+        return odometry.getEstimatedPosition();
+    }
+
     public void resetOdometry(Pose2d pose) {
         odometryTimeOffset = Timer.getFPGATimestamp();
 
@@ -161,6 +192,24 @@ public class Swerve extends SubsystemBase {
         rearRight.setDesiredState(new SwerveModuleState(0, fromDegrees(45)));
     }
 
+    public void stop() {
+        frontLeft.setDesiredState(
+                new SwerveModuleState(0, frontLeft.getModulePosition().angle)
+        );
+
+        frontRight.setDesiredState(
+                new SwerveModuleState(0, frontRight.getModulePosition().angle)
+        );
+
+        rearLeft.setDesiredState(
+                new SwerveModuleState(0, rearLeft.getModulePosition().angle)
+        );
+
+        rearRight.setDesiredState(
+                new SwerveModuleState(0, rearRight.getModulePosition().angle)
+        );
+    }
+
     public void setModuleStates(SwerveModuleState[] desiredStates) {
         desaturateWheelSpeeds(
                 desiredStates, DriveConstants.MAX_SPEED_METERS_PER_SECOND);
@@ -172,93 +221,5 @@ public class Swerve extends SubsystemBase {
 
     public void addVisionMeasurement(Pose2d pose, long time) {
         this.odometry.addVisionMeasurement(pose, time);
-    }
-
-    public class FieldOrientedDrive extends CommandBase {
-        private final DoubleSupplier vxSupplier;
-        private final DoubleSupplier vySupplier;
-        private final DoubleSupplier angularVelocitySupplier;
-        private SwerveModuleState[] previousStates = new SwerveModuleState[4];
-
-        public FieldOrientedDrive(
-                DoubleSupplier vxSupplier,
-                DoubleSupplier vySupplier,
-                DoubleSupplier angularVelocitySupplier
-        ) {
-            this.vxSupplier = vxSupplier;
-            this.vySupplier = vySupplier;
-            this.angularVelocitySupplier = angularVelocitySupplier;
-
-            addRequirements(Swerve.this);
-        }
-
-        @Override
-        public void execute() {
-            var currentSetpoints = secondOrderKinematics(
-                    new ChassisSpeeds(
-                            vxSupplier.getAsDouble(),
-                            vySupplier.getAsDouble(),
-                            angularVelocitySupplier.getAsDouble() * MAX_ANGULAR_SPEED
-                    ),
-                    DRIVE_KINEMATICS,
-                    PERIOD,
-                    MAX_SPEED_METERS_PER_SECOND,
-                    previousStates
-            );
-
-            previousStates = currentSetpoints;
-
-            setModuleStates(currentSetpoints);
-        }
-
-        @Override
-        public void end(boolean interrupted) {
-            DriverStation.reportError("Swerve default command was cancelled", false);
-        }
-    }
-
-    public class AutonomousCommand extends CommandBase {
-        Trajectory auto;
-        double initialTimeSeconds;
-        double autoRunTime;
-
-        public AutonomousCommand() {
-            try {
-                auto = TrajectoryUtil.fromPathweaverJson(Filesystem.getDeployDirectory().toPath());
-                autoRunTime = auto.getTotalTimeSeconds();
-            } catch (IOException e) {
-                DriverStation.reportError("Failed to find auto file", false);
-            }
-        }
-
-        @Override
-        public void initialize() {
-            initialTimeSeconds = Timer.getFPGATimestamp();
-            Swerve.this.trajectoryFollower.setEnabled(true);
-            Swerve.this.resetOdometry(auto.getInitialPose());
-        }
-
-        @Override
-        public void execute() {
-            var target = auto.sample(Timer.getFPGATimestamp() - initialTimeSeconds);
-
-
-            Swerve.this.trajectoryFollower.calculate(
-                    Swerve.this.odometry.getEstimatedPosition(),
-                    target,
-                    new Rotation2d()
-            );
-        }
-
-        @Override
-        public void end(boolean interrupted) {
-            Swerve.this.setCross();
-        }
-
-        @Override
-        public boolean isFinished() {
-            return Timer.getFPGATimestamp() - initialTimeSeconds >= autoRunTime &&
-                    Swerve.this.trajectoryFollower.atReference();
-        }
     }
 }

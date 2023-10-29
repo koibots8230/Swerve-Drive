@@ -10,8 +10,12 @@ import com.revrobotics.SparkMaxPIDController;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
+import edu.wpi.first.wpilibj.DriverStation;
 
 public class SwerveModuleIOMaxSwerve implements SwerveModuleIO {
+    CANSparkMax turningSparkMax;
+    CANSparkMax drivingSparkMax;
+
     private final RelativeEncoder drivingEncoder;
     private final AbsoluteEncoder azimuthEncoder;
 
@@ -26,17 +30,18 @@ public class SwerveModuleIOMaxSwerve implements SwerveModuleIO {
             int azimuthCANId,
             double chassisAngularOffset
     ) {
-        try (CANSparkMax m_turningSparkMax = new CANSparkMax(azimuthCANId, CANSparkMaxLowLevel.MotorType.kBrushless);
-             CANSparkMax m_drivingSparkMax = new CANSparkMax(drivingCANId, CANSparkMaxLowLevel.MotorType.kBrushless)) {
+        try {
+            turningSparkMax = new CANSparkMax(azimuthCANId, CANSparkMaxLowLevel.MotorType.kBrushless);
+            drivingSparkMax = new CANSparkMax(drivingCANId, CANSparkMaxLowLevel.MotorType.kBrushless);
 
-            m_drivingSparkMax.restoreFactoryDefaults();
-            m_turningSparkMax.restoreFactoryDefaults();
+            drivingSparkMax.restoreFactoryDefaults();
+            turningSparkMax.restoreFactoryDefaults();
 
             // Setup encoders and PID controllers for the driving and turning SPARKS MAX.
-            drivingEncoder = m_drivingSparkMax.getEncoder();
-            azimuthEncoder = m_turningSparkMax.getAbsoluteEncoder(SparkMaxAbsoluteEncoder.Type.kDutyCycle);
-            drivingPIDController = m_drivingSparkMax.getPIDController();
-            azimuthPIDController = m_turningSparkMax.getPIDController();
+            drivingEncoder = drivingSparkMax.getEncoder();
+            azimuthEncoder = turningSparkMax.getAbsoluteEncoder(SparkMaxAbsoluteEncoder.Type.kDutyCycle);
+            drivingPIDController = drivingSparkMax.getPIDController();
+            azimuthPIDController = turningSparkMax.getPIDController();
             drivingPIDController.setFeedbackDevice(drivingEncoder);
             azimuthPIDController.setFeedbackDevice(azimuthEncoder);
 
@@ -73,7 +78,6 @@ public class SwerveModuleIOMaxSwerve implements SwerveModuleIO {
             drivingPIDController.setOutputRange(Constants.ModuleConstants.DRIVING_MIN_OUTPUT,
                     Constants.ModuleConstants.DRIVING_MAX_OUTPUT);
 
-
             // Set the PID gains for the turning motor. Note these are example gains, and you
             // may need to tune them for your own robot!
             azimuthPIDController.setP(Constants.ModuleConstants.TURNING_P);
@@ -83,20 +87,23 @@ public class SwerveModuleIOMaxSwerve implements SwerveModuleIO {
             azimuthPIDController.setOutputRange(Constants.ModuleConstants.TURNING_MIN_OUTPUT,
                     Constants.ModuleConstants.TURNING_MAX_OUTPUT);
 
-            m_drivingSparkMax.setIdleMode(Constants.ModuleConstants.DRIVING_MOTOR_IDLE_MODE);
-            m_turningSparkMax.setIdleMode(Constants.ModuleConstants.TURNING_MOTOR_IDLE_MODE);
-            m_drivingSparkMax.setSmartCurrentLimit(Constants.ModuleConstants.DRIVING_MOTOR_CURRENT_LIMIT);
-            m_turningSparkMax.setSmartCurrentLimit(Constants.ModuleConstants.TURNING_MOTOR_CURRENT_LIMIT);
+            drivingSparkMax.setIdleMode(Constants.ModuleConstants.DRIVING_MOTOR_IDLE_MODE);
+            turningSparkMax.setIdleMode(Constants.ModuleConstants.TURNING_MOTOR_IDLE_MODE);
+            drivingSparkMax.setSmartCurrentLimit(Constants.ModuleConstants.DRIVING_MOTOR_CURRENT_LIMIT);
+            turningSparkMax.setSmartCurrentLimit(Constants.ModuleConstants.TURNING_MOTOR_CURRENT_LIMIT);
 
             // Save the SPARK MAX configurations. If a SPARK MAX browns out during
             // operation, it will maintain the above configurations.
-            m_drivingSparkMax.burnFlash();
-            m_turningSparkMax.burnFlash();
-        }
+            drivingSparkMax.burnFlash();
+            turningSparkMax.burnFlash();
 
-        this.chassisAngularOffset = chassisAngularOffset;
-        desiredState.angle = new Rotation2d(azimuthEncoder.getPosition());
-        drivingEncoder.setPosition(0);
+            this.chassisAngularOffset = chassisAngularOffset;
+            desiredState.angle = new Rotation2d(azimuthEncoder.getPosition());
+            drivingEncoder.setPosition(0);
+        } catch (RuntimeException e) {
+            DriverStation.reportError("Failed instantiate swerve module", e.getStackTrace());
+            throw e;
+        }
     }
 
     @Override
@@ -128,7 +135,6 @@ public class SwerveModuleIOMaxSwerve implements SwerveModuleIO {
         this.desiredState = desiredState;
     }
 
-    /** Zeroes all the SwerveModule encoders. */
     @Override
     public void resetEncoders() {
         drivingEncoder.setPosition(0);
@@ -138,6 +144,14 @@ public class SwerveModuleIOMaxSwerve implements SwerveModuleIO {
     public SwerveModulePosition getModulePosition() {
         return new SwerveModulePosition(
                 this.drivingEncoder.getPosition(),
+                new Rotation2d(this.azimuthEncoder.getPosition())
+        );
+    }
+
+    @Override
+    public SwerveModuleState getModuleState() {
+        return new SwerveModuleState(
+                this.drivingEncoder.getVelocity(),
                 new Rotation2d(this.azimuthEncoder.getPosition())
         );
     }

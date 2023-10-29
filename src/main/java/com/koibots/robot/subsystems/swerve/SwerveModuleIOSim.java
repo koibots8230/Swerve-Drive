@@ -1,33 +1,26 @@
 package com.koibots.robot.subsystems.swerve;
 
+import com.koibots.lib.debug.DebugUtils;
 import com.revrobotics.REVPhysicsSim;
-import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
+import edu.wpi.first.math.system.plant.DCMotor;
 
-public class SwerveModuleIOSim implements SwerveModuleIO {
+public class SwerveModuleIOSim extends SwerveModuleIOMaxSwerve {
 
+    protected SwerveModuleIOSim(int drivingCANId, int azimuthCANId, double chassisAngularOffset) {
+        super(drivingCANId, azimuthCANId, chassisAngularOffset);
 
-    protected SwerveModuleIOSim() {
+        REVPhysicsSim.getInstance().addSparkMax(
+                super.drivingSparkMax, DCMotor.getNEO(1)
+        );
 
+        REVPhysicsSim.getInstance().addSparkMax(
+                super.turningSparkMax, DCMotor.getNEO(1)
+        );
     }
 
     @Override
-    public void updateState(SwerveModuleIOState state) {
-
-    }
-
-    @Override
-    public void setDesiredState(SwerveModuleState state) {
-
-    }
-
-    @Override
-    public void resetEncoders() {
-
-    }
-
-    @Override
-    public SwerveModulePosition getModulePosition() {
-        return null;
+    public void setDesiredState(SwerveModuleState desiredState) {
+        super.setDesiredState(desiredState);
     }
 }
