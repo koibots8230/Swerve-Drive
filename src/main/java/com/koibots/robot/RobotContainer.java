@@ -1,21 +1,20 @@
 package com.koibots.robot;
 
-import com.koibots.lib.math.SwerveUtils;
-import com.koibots.robot.command.FieldOrientedDrive;
-import edu.wpi.first.math.MathUtil;
-import edu.wpi.first.math.controller.PIDController;
+import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj.PS4Controller.Button;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.RunCommand;
+import edu.wpi.first.wpilibj2.command.button.CommandGenericHID;
+import edu.wpi.first.wpilibj2.command.button.CommandJoystick;
+import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.JoystickButton;
 import org.littletonrobotics.junction.networktables.LoggedDashboardChooser;
 
 import java.nio.file.Path;
 
-import static com.koibots.robot.constants.Constants.OIConstants;
 import static com.koibots.robot.subsystems.Subsystems.Swerve;
-import static edu.wpi.first.math.MathUtil.applyDeadband;
+
 
 /*
  * This class is where the bulk of the robot should be declared.  Since Command-based is a
@@ -24,40 +23,36 @@ import static edu.wpi.first.math.MathUtil.applyDeadband;
  * (including subsystems, commands, and button mappings) should be declared here.
  */
 public class RobotContainer {
-    // The driver's controller
-    XboxController driverController = new XboxController(OIConstants.DRIVER_CONTROLLER_PORT);
+    // Controllers
+    private final CommandXboxController xbox = new CommandXboxController(0);
+    private final CommandJoystick joystick = new CommandJoystick(0);
+    private final CommandGenericHID drone = new CommandGenericHID(0);
 
-    PIDController robotRotationController = new PIDController(
-            0.2,
-            0,
-            0,
-            0.02
-    );
+    enum Controller {
+        Xbox,
+        Joystick,
+        DroneController
+    }
 
-
-    LoggedDashboardChooser<Path> autoChooser;
+    LoggedDashboardChooser<Controller> controllerChooser;
 
     /**
     * The container for the robot. Contains subsystems, OI devices, and commands.
     */
-    public RobotContainer() {
-      /*
-      try (var autos = Files.list(Filesystem.getDeployDirectory().toPath());) {
-          autos.forEach(
-                  (auto) ->  autoChooser.addOption(
-                          pathToAutoName(auto),
-                          auto
-                  )
-          );
-      } catch (IOException e) {
-          DriverStation.reportError("Failed to access deploy directory", false);
-      } finally {
-          autoChooser.addDefaultOption("None", null);
-      }*/
+    public RobotContainer(Robot.Mode mode) {
+        switch (mode) {
+            case REPLAY:
+                DriverStation.reportError("Replay not supported", false);
+                throw new RuntimeException("Replay not supported");
+            case REAL:
+            case SIM:
+                controllerChooser.addDefaultOption("Xbox Controller", Controller.Xbox);
+                controllerChooser.addOption("Flight Joystick", Controller.Joystick);
+                controllerChooser.addOption("Drone Controller", Controller.DroneController);
 
-       // Allows PID loop to wrap at 360 degrees
-        robotRotationController.enableContinuousInput(0, 360);
-
+                configureButtonBindings();
+                break;
+        }
     }
 
     /**
@@ -70,38 +65,17 @@ public class RobotContainer {
     * {@link JoystickButton}.
     */
     public void configureButtonBindings() {
-        enableFieldOrientedControl();
+        switch (controllerChooser.get()) {
+            case Xbox:
 
-        new JoystickButton(driverController, Button.kR1.value)
-            .whileTrue(new RunCommand(
-                    Swerve.get()::setCross,
-                    Swerve.get()
-            ).finallyDo(
-                    (_end) -> enableFieldOrientedControl()
-            ));
-    }
+                break;
+            case Joystick:
 
-    private void enableFieldOrientedControl() {
-      Swerve.get().setDefaultCommand(
-              new FieldOrientedDrive(
-                      () -> applyDeadband(driverController.getLeftX(), 0.02),
-                      () -> applyDeadband(driverController.getLeftY(), 0.02),
-                      () -> {
-                          if (driverController.getPOV() != -1) {
-                              return applyDeadband(driverController.getRightX(), 0.02);
-                          } else {
-                              return MathUtil.clamp(
-                                      SwerveUtils.wrapAngle(robotRotationController.calculate(
-                                              Swerve.get().getEstimatedPosition().getRotation().getDegrees(),
-                                              driverController.getPOV()
-                                      )),
-                                      -1,
-                                      1
-                              );
-                          }
-                      }
-              )
-      );
+                break;
+            case DroneController:
+
+                break;
+        }
     }
 
     /**
@@ -110,7 +84,6 @@ public class RobotContainer {
     * @return the command to run in autonomous
     */
     public Command getAutonomousCommand() {
-      return null;
-    // return new SwerveAutonomousController(autoChooser.get());
+        return null;
     }
 }

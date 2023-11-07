@@ -1,224 +1,203 @@
 package com.koibots.robot.subsystems.swerve;
 
-import com.koibots.lib.hardware.NavX;
+
 import com.koibots.robot.Robot;
-import com.koibots.robot.constants.Constants.DriveConstants;
 import com.koibots.robot.constants.ControlConstants;
-import edu.wpi.first.hal.SimDouble;
-import edu.wpi.first.hal.simulation.SimDeviceDataJNI;
-import edu.wpi.first.math.controller.HolonomicDriveController;
+import com.koibots.robot.constants.PhysicalConstants;
+import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.estimator.SwerveDrivePoseEstimator;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.geometry.Transform2d;
 import edu.wpi.first.math.geometry.Translation2d;
-import edu.wpi.first.math.kinematics.SwerveModulePosition;
+import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
-import edu.wpi.first.wpilibj.DriverStation;
-import edu.wpi.first.wpilibj.Notifier;
-import edu.wpi.first.wpilibj.Timer;
+import edu.wpi.first.wpilibj2.command.CommandBase;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import org.littletonrobotics.junction.Logger;
+import org.littletonrobotics.junction.networktables.LoggedDashboardChooser;
 
-import static com.koibots.robot.constants.Constants.DriveConstants.DRIVE_KINEMATICS;
-import static edu.wpi.first.math.geometry.Rotation2d.fromDegrees;
+import java.util.function.BooleanSupplier;
+import java.util.function.DoubleSupplier;
+import java.util.function.Function;
+
 import static edu.wpi.first.math.kinematics.SwerveDriveKinematics.desaturateWheelSpeeds;
 
+
 public class Swerve extends SubsystemBase {
-    private final SwerveModuleIO frontLeft;
-    private final SwerveModuleIO frontRight;
-    private final SwerveModuleIO rearLeft;
-    private final SwerveModuleIO rearRight;
+    SwerveModule[] swerveModules;
+    GyroIO gyro;
+    SwerveDrivePoseEstimator odometry;
 
-    private final SwerveModuleIOStateAutoLogged frontLeftState = new SwerveModuleIOStateAutoLogged();
-    private final SwerveModuleIOStateAutoLogged frontRightState = new SwerveModuleIOStateAutoLogged();
-    private final SwerveModuleIOStateAutoLogged rearLeftState = new SwerveModuleIOStateAutoLogged();
-    private final SwerveModuleIOStateAutoLogged rearRightState = new SwerveModuleIOStateAutoLogged();
-    private double odometryTimeOffset;
-    private final SwerveDrivePoseEstimator odometry;
-    public final HolonomicDriveController trajectoryFollower = new HolonomicDriveController(
-            ControlConstants.xController,
-            ControlConstants.yController,
-            ControlConstants.thetaController
-    );
-
-    SimDouble gyroYaw;
-
-    /**
-     * <p>Forward is 0 heading</p>
-     *
-     * @author CalebNeal07
-     */
     public Swerve() {
-        if (Robot.isReal()) {
-            frontLeft = new SwerveModuleIOMaxSwerve(
-                    DriveConstants.FRONT_LEFT_DRIVING_CAN_ID,
-                    DriveConstants.FRONT_LEFT_TURNING_CAN_ID,
-                    DriveConstants.FRONT_LEFT_CHASSIS_ANGULAR_OFFSET);
+        switch (Robot.getMode()) {
+            case REAL:
 
-            frontRight = new SwerveModuleIOMaxSwerve(
-                    DriveConstants.FRONT_RIGHT_DRIVING_CAN_ID,
-                    DriveConstants.FRONT_RIGHT_TURNING_CAN_ID,
-                    DriveConstants.FRONT_RIGHT_CHASSIS_ANGULAR_OFFSET);
+                break;
+            case SIM:
+                swerveModules = new SwerveModule[] {
+                        new SwerveModule(new SwerveModuleIOSim(), 0),
+                        new SwerveModule(new SwerveModuleIOSim(), 1),
+                        new SwerveModule(new SwerveModuleIOSim(), 2),
+                        new SwerveModule(new SwerveModuleIOSim(), 3)
+                };
 
-            rearLeft = new SwerveModuleIOMaxSwerve(
-                    DriveConstants.REAR_LEFT_DRIVING_CAN_ID,
-                    DriveConstants.REAR_LEFT_TURNING_CAN_ID,
-                    DriveConstants.BACK_LEFT_CHASSIS_ANGULAR_OFFSET);
+                odometry = new SwerveDrivePoseEstimator(
+                    ControlConstants.SWERVE_KINEMATICS,
+                    new Rotation2d(),
 
-            rearRight = new SwerveModuleIOMaxSwerve(
-                    DriveConstants.REAR_RIGHT_DRIVING_CAN_ID,
-                    DriveConstants.REAR_RIGHT_TURNING_CAN_ID,
-                    DriveConstants.BACK_RIGHT_CHASSIS_ANGULAR_OFFSET);
-        } else {
-            frontLeft = new SwerveModuleIOSim(
-                    DriveConstants.FRONT_LEFT_DRIVING_CAN_ID,
-                    DriveConstants.FRONT_LEFT_TURNING_CAN_ID,
-                    DriveConstants.FRONT_LEFT_CHASSIS_ANGULAR_OFFSET);
-
-            frontRight = new SwerveModuleIOSim(
-                    DriveConstants.FRONT_RIGHT_DRIVING_CAN_ID,
-                    DriveConstants.FRONT_RIGHT_TURNING_CAN_ID,
-                    DriveConstants.FRONT_RIGHT_CHASSIS_ANGULAR_OFFSET);
-
-            rearLeft = new SwerveModuleIOSim(
-                    DriveConstants.REAR_LEFT_DRIVING_CAN_ID,
-                    DriveConstants.REAR_LEFT_TURNING_CAN_ID,
-                    DriveConstants.BACK_LEFT_CHASSIS_ANGULAR_OFFSET);
-
-            rearRight = new SwerveModuleIOSim(
-                    DriveConstants.REAR_RIGHT_DRIVING_CAN_ID,
-                    DriveConstants.REAR_RIGHT_TURNING_CAN_ID,
-                    DriveConstants.BACK_RIGHT_CHASSIS_ANGULAR_OFFSET);
-
-            gyroYaw = new SimDouble(
-                    SimDeviceDataJNI.getSimValueHandle(
-                            SimDeviceDataJNI.getSimDeviceHandle("navX-Sensor[0]"),
-                            "Yaw"
-                    )
             );
+
+                break;
+            case REPLAY:
+
+        }
+    }
+
+    public void setModuleStates(SwerveModuleState[] states) {
+        swerveModules[0].setState(states[0]);
+        swerveModules[1].setState(states[1]);
+        swerveModules[2].setState(states[2]);
+        swerveModules[3].setState(states[3]);
+    }
+
+    public class TeleopCommand extends CommandBase {
+
+        // Graph of algorithms here: https://www.desmos.com/calculator/w738aldioj
+        // TODO: Clean these up
+        enum ScalingAlgorithm {
+            Linear(
+                    (x) -> x
+            ),
+            Squared(
+                    (x) -> Math.signum(x) * x * x
+            ),
+
+            Cubed(
+                    (x) -> x * x * x
+            ),
+
+            Cosine(
+                    (x) -> (-Math.signum(x) * Math.cos(Math.PI * 0.5 * x )) + (1 * Math.signum(x))
+            ),
+
+            CubedSquareRoot(
+                    (x) -> Math.signum(x) * Math.sqrt(Math.abs(x * x * x))
+            );
+
+            public final Function<Double, Double> algorithm;
+
+            private ScalingAlgorithm(Function<Double, Double> algorithm) {
+                this.algorithm = algorithm;
+            }
         }
 
-        odometry = new SwerveDrivePoseEstimator(
-                DRIVE_KINEMATICS,
-                fromDegrees(NavX.get().getAngle()),
-                new SwerveModulePosition[] {
-                        frontLeft.getModulePosition(),
-                        frontRight.getModulePosition(),
-                        rearLeft.getModulePosition(),
-                        rearRight.getModulePosition()
-                },
-                new Pose2d()
-        );
 
+        DoubleSupplier vxSupplier;
+        DoubleSupplier vySupplier;
+        DoubleSupplier vThetaSupplier;
+        DoubleSupplier angleSupplier;
+        BooleanSupplier crossSupplier;
+        Function<Double, Double> scalingFunction;
+        LoggedDashboardChooser<ScalingAlgorithm> scalingChooser;
+        double previousTimestamp;
 
-        odometryTimeOffset = Timer.getFPGATimestamp();
-
-        try(
-                Notifier odometryUpdater = new Notifier(() ->
-                        odometry.updateWithTime(
-                                Timer.getFPGATimestamp() - odometryTimeOffset,
-                                fromDegrees(NavX.get().getAngle()),
-                                new SwerveModulePosition[]{
-                                        frontLeft.getModulePosition(),
-                                        frontRight.getModulePosition(),
-                                        rearLeft.getModulePosition(),
-                                        rearRight.getModulePosition()
-                                }
-                        )
-                )
+        TeleopCommand(
+                DoubleSupplier vxSupplier,
+                DoubleSupplier vySupplier,
+                DoubleSupplier vThetaSupplier,
+                DoubleSupplier angleSupplier,
+                BooleanSupplier crossSupplier
         ) {
-            odometryUpdater.startPeriodic(1.0f / 250.0f); // Start odometry with frequency of 250hz
-        } catch (Exception e) {
-            DriverStation.reportError("Failed to initialize odometry thread", false);
+            this.vxSupplier = vxSupplier;
+            this.vySupplier = vySupplier;
+            this.vThetaSupplier = vThetaSupplier;
+            this.angleSupplier = angleSupplier;
+            this.crossSupplier = crossSupplier;
+
+            scalingChooser.addDefaultOption("Linear", ScalingAlgorithm.Linear);
+            scalingChooser.addOption("Squared", ScalingAlgorithm.Squared);
+            scalingChooser.addOption("Cubed", ScalingAlgorithm.Cubed);
+            scalingChooser.addOption("Cosine", ScalingAlgorithm.Cosine);
+            scalingChooser.addOption("Fancy", ScalingAlgorithm.CubedSquareRoot);
+
+            addRequirements(Swerve.this);
+
+            this.withInterruptBehavior(InterruptionBehavior.kCancelIncoming);
         }
 
-        trajectoryFollower.setTolerance(new Pose2d(new Translation2d(0.1, 0.1), new Rotation2d(0.1)));
-    }
+        @Override
+        public void initialize() {
+            scalingFunction = scalingChooser.get().algorithm;
 
-    @Override
-    public void periodic() {
-        frontLeft.updateState(frontLeftState);
-        frontRight.updateState(frontRightState);
-        rearLeft.updateState(rearLeftState);
-        rearRight.updateState(rearRightState);
+            previousTimestamp = Logger.getInstance().getRealTimestamp();
+        }
 
-        Logger.getInstance().processInputs("Front Left Swerve Module", frontLeftState);
-        Logger.getInstance().processInputs("Front Right Swerve Module", frontRightState);
-        Logger.getInstance().processInputs("Rear Left Swerve Module", rearLeftState);
-        Logger.getInstance().processInputs("Rear Right Swerve Module", rearRightState);
-    }
+        @Override
+        public void execute() {
+            if (!this.crossSupplier.getAsBoolean()) { // Normal Field Oriented
+                double linearMagnitude =
+                        MathUtil.applyDeadband(
+                                Math.hypot(vxSupplier.getAsDouble(), vySupplier.getAsDouble()),
+                                ControlConstants.DEADBAND,
+                                1
+                        );
 
-    @Override
-    public void simulationPeriodic() {
-        gyroYaw.set(odometry.getEstimatedPosition().getRotation().getDegrees());
+                Rotation2d linearDirection =
+                        new Rotation2d(vxSupplier.getAsDouble(), vySupplier.getAsDouble());
 
-        Logger.getInstance().recordOutput("Sim/Odometry", odometry.getEstimatedPosition());
-        Logger.getInstance().recordOutput("Sim/FrontLeftModule", frontLeft.getModuleState(),
-                frontRight.getModuleState(),
-                rearLeft.getModuleState(),
-                rearRight.getModuleState());
-    }
+                double angularVelocity = MathUtil.applyDeadband(vThetaSupplier.getAsDouble(), ControlConstants.DEADBAND);
+                // TODO: Implement POV for angle alignment
 
-    public Pose2d getEstimatedPosition() {
-        return odometry.getEstimatedPosition();
-    }
+                // Apply Scaling
+                linearMagnitude = Math.abs(scalingFunction.apply(linearMagnitude));
+                angularVelocity = scalingFunction.apply(angularVelocity);
 
-    public void resetOdometry(Pose2d pose) {
-        odometryTimeOffset = Timer.getFPGATimestamp();
+                Translation2d linearVelocity =
+                        new Pose2d(new Translation2d(), linearDirection)
+                                .transformBy(new Transform2d(linearMagnitude, 0.0, new Rotation2d()))
+                                .getTranslation();
 
-        odometry.resetPosition(fromDegrees(NavX.get().getAngle()),
-                new SwerveModulePosition[]{
-                        frontLeft.getModulePosition(),
-                        frontRight.getModulePosition(),
-                        rearLeft.getModulePosition(),
-                        rearRight.getModulePosition()
-                },
-                pose
-        );
-    }
+                ChassisSpeeds speeds = ChassisSpeeds.fromFieldRelativeSpeeds(
+                        linearVelocity.getX() * PhysicalConstants.MAX_LINEAR_SPEED,
+                        linearVelocity.getY() * PhysicalConstants.MAX_LINEAR_SPEED,
+                        angularVelocity * PhysicalConstants.MAX_ANGULAR_VELOCITY,
+                        new Rotation2d() // TODO: Put actual estimated angle
+                );
 
-    public void resetEncoders() {
-        frontLeft.resetEncoders();
-        frontRight.resetEncoders();
-        rearLeft.resetEncoders();
-        rearRight.resetEncoders();
-    }
+                double periodSeconds = Logger.getInstance().getRealTimestamp() - previousTimestamp;
 
-    public void setCross() {
-        frontLeft.setDesiredState(new SwerveModuleState(0, fromDegrees(45)));
-        frontRight.setDesiredState(new SwerveModuleState(0, fromDegrees(-45)));
-        rearLeft.setDesiredState(new SwerveModuleState(0, fromDegrees(-45)));
-        rearRight.setDesiredState(new SwerveModuleState(0, fromDegrees(45)));
-    }
+                var setpointTwist = new Pose2d()
+                        .log(
+                                new Pose2d(
+                                        speeds.vxMetersPerSecond * periodSeconds,
+                                        speeds.vyMetersPerSecond * periodSeconds,
+                                        new Rotation2d(speeds.omegaRadiansPerSecond * periodSeconds)));
 
-    public void stop() {
-        frontLeft.setDesiredState(
-                new SwerveModuleState(0, frontLeft.getModulePosition().angle)
-        );
+                var adjustedSpeeds =
+                        new edu.wpi.first.math.kinematics.ChassisSpeeds(
+                                setpointTwist.dx / periodSeconds,
+                                setpointTwist.dy / periodSeconds,
+                                setpointTwist.dtheta / periodSeconds);
 
-        frontRight.setDesiredState(
-                new SwerveModuleState(0, frontRight.getModulePosition().angle)
-        );
+                var targetModuleStates = ControlConstants.SWERVE_KINEMATICS.toSwerveModuleStates(adjustedSpeeds);
 
-        rearLeft.setDesiredState(
-                new SwerveModuleState(0, rearLeft.getModulePosition().angle)
-        );
+                desaturateWheelSpeeds(targetModuleStates, PhysicalConstants.MAX_LINEAR_SPEED);
 
-        rearRight.setDesiredState(
-                new SwerveModuleState(0, rearRight.getModulePosition().angle)
-        );
-    }
+                if (adjustedSpeeds.vxMetersPerSecond == 0.0
+                        && adjustedSpeeds.vyMetersPerSecond == 0.0
+                        && adjustedSpeeds.omegaRadiansPerSecond == 0) {
+                    // TODO: Replace Rotation2d with actual previous state
+                    targetModuleStates[0] = new SwerveModuleState(0, new Rotation2d());
+                    targetModuleStates[1] = new SwerveModuleState(0, new Rotation2d());
+                    targetModuleStates[2] = new SwerveModuleState(0, new Rotation2d());
+                    targetModuleStates[3] = new SwerveModuleState(0, new Rotation2d());
+                }
 
-    public void setModuleStates(SwerveModuleState[] desiredStates) {
-        desaturateWheelSpeeds(
-                desiredStates, DriveConstants.MAX_SPEED_METERS_PER_SECOND);
-        frontLeft.setDesiredState(desiredStates[0]);
-        frontRight.setDesiredState(desiredStates[1]);
-        rearLeft.setDesiredState(desiredStates[2]);
-        rearRight.setDesiredState(desiredStates[3]);
-    }
+                Swerve.this.setModuleStates(targetModuleStates);
+            } else { // Set Cross
 
-    public void addVisionMeasurement(Pose2d pose, long time) {
-        this.odometry.addVisionMeasurement(pose, time);
+            }
+        }
     }
 }

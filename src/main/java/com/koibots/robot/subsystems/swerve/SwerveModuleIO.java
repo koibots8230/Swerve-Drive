@@ -1,25 +1,48 @@
+// Copyright 2021-2023 FRC 6328
+// http://github.com/Mechanical-Advantage
+//
+// This program is free software; you can redistribute it and/or
+// modify it under the terms of the GNU General Public License
+// version 3 as published by the Free Software Foundation or
+// available in the root directory of this project.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU General Public License for more details.
+
 package com.koibots.robot.subsystems.swerve;
 
 import edu.wpi.first.math.geometry.Rotation2d;
-import edu.wpi.first.math.kinematics.SwerveModuleState;
-import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import org.littletonrobotics.junction.AutoLog;
 
 public interface SwerveModuleIO {
     @AutoLog
-    class SwerveModuleIOState {
-        double angle;
-        double distance;
+    public static class SwerveModuleIOInputs {
+        public double drivePositionRad = 0.0;
+        public double driveVelocityRadPerSec = 0.0;
+        public double driveAppliedVolts = 0.0;
+        public double[] driveCurrentAmps = new double[] {};
+
+        public Rotation2d turnAbsolutePosition = new Rotation2d();
+        public Rotation2d turnPosition = new Rotation2d();
+        public double turnVelocityRadPerSec = 0.0;
+        public double turnAppliedVolts = 0.0;
+        public double[] turnCurrentAmps = new double[] {};
     }
 
-    void updateState(SwerveModuleIOState state);
+    /** Updates the set of loggable inputs. */
+    public default void updateInputs(SwerveModuleIOInputs inputs) {}
 
-    void setDesiredState(SwerveModuleState state);
+    /** Run the drive motor at the specified voltage. */
+    public default void setDriveVoltage(double volts) {}
 
-    void resetEncoders();
+    /** Run the turn motor at the specified voltage. */
+    public default void setTurnVoltage(double volts) {}
 
-    SwerveModulePosition getModulePosition();
+    /** Enable or disable brake mode on the drive motor. */
+    public default void setDriveBrakeMode(boolean enable) {}
 
-    SwerveModuleState getModuleState();
-
+    /** Enable or disable brake mode on the turn motor. */
+    public default void setTurnBrakeMode(boolean enable) {}
 }

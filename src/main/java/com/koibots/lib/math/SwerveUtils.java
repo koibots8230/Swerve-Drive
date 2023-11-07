@@ -1,6 +1,5 @@
 package com.koibots.lib.math;
 
-import com.koibots.robot.constants.Constants;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
@@ -120,9 +119,10 @@ public class SwerveUtils {
     if (adjustedSpeeds.vxMetersPerSecond == 0.0
             && adjustedSpeeds.vyMetersPerSecond == 0.0
             && adjustedSpeeds.omegaRadiansPerSecond == 0) {
-        for (int i = 0; i < 4; i++) {
-            targetModuleStates[i] = new SwerveModuleState(0.0, previousStates[i].angle);
-        }
+      targetModuleStates[0] = new SwerveModuleState(0, new Rotation2d()); // TODO: Replace Rotation2d with actual previous state
+      targetModuleStates[1] = new SwerveModuleState(0, new Rotation2d());
+      targetModuleStates[2] = new SwerveModuleState(0, new Rotation2d());
+      targetModuleStates[3] = new SwerveModuleState(0, new Rotation2d());
     }
 
     return targetModuleStates;

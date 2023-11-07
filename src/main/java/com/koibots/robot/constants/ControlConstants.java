@@ -1,16 +1,20 @@
 package com.koibots.robot.constants;
 
-import edu.wpi.first.math.controller.PIDController;
-import edu.wpi.first.math.controller.ProfiledPIDController;
-import edu.wpi.first.math.trajectory.TrapezoidProfile;
+import edu.wpi.first.math.geometry.Translation2d;
+import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
+import edu.wpi.first.math.util.Units;
 
 public class ControlConstants {
-    public static final PIDController xController = new PIDController(0.3, 0, 0);
-    public static final PIDController yController = new PIDController(0.3, 0, 0);
-    public static final ProfiledPIDController thetaController = new ProfiledPIDController(
-            0.2,
-            0,
-            0,
-            new TrapezoidProfile.Constraints(Constants.DriveConstants.MAX_ANGULAR_SPEED, Math.PI)
+
+    public static final double DEADBAND = 0.02;
+
+    private static final double ROBOT_WIDTH = Units.inchesToMeters(30);
+    private static final double ROBOT_LENGTH = Units.inchesToMeters(30);
+
+    public static final SwerveDriveKinematics SWERVE_KINEMATICS = new SwerveDriveKinematics(
+            new Translation2d(ROBOT_LENGTH / 2, -ROBOT_WIDTH / 2), // Front Right
+            new Translation2d(ROBOT_LENGTH / 2, ROBOT_WIDTH / 2), // Front Left
+            new Translation2d(-ROBOT_LENGTH / 2, ROBOT_WIDTH / 2), // Back Left
+            new Translation2d(-ROBOT_LENGTH / 2, -ROBOT_WIDTH / 2)  // Back Right
     );
 }
