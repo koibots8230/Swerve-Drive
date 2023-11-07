@@ -22,5 +22,7 @@ public class SwerveModuleIOSim extends SwerveModuleIOMaxSwerve {
     @Override
     public void setDesiredState(SwerveModuleState desiredState) {
         super.setDesiredState(desiredState);
+
+        System.out.println(desiredState);
     }
 }

@@ -6,6 +6,7 @@ package com.koibots.robot;
 
 import com.revrobotics.REVPhysicsSim;
 import edu.wpi.first.networktables.NetworkTable;
+import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.PowerDistribution;
 import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
 import edu.wpi.first.wpilibj.shuffleboard.ShuffleboardComponent;
@@ -20,6 +21,8 @@ import org.littletonrobotics.junction.networktables.NT4Publisher;
 import org.littletonrobotics.junction.wpilog.WPILOGReader;
 import org.littletonrobotics.junction.wpilog.WPILOGWriter;
 
+import static com.koibots.robot.subsystems.Subsystems.Swerve;
+
 public class Robot extends LoggedRobot {
     private Command autonomousCommand;
     private RobotContainer robotContainer;
@@ -30,18 +33,14 @@ public class Robot extends LoggedRobot {
      */
     @Override
     public void robotInit() {
-        Logger.getInstance().recordMetadata("RobotName", "Swerve");
-        Logger.getInstance().recordMetadata("GITSha", BuildConstants.GIT_SHA);
+        Logger.getInstance().recordMetadata("RobotName", "Swerve Chassis");
+        Logger.getInstance().recordMetadata("Date", BuildConstants.BUILD_DATE);
+        if (!DriverStation.isFMSAttached()) {
+            Logger.getInstance().addDataReceiver(new NT4Publisher());
+        }
 
         if (isReal()) {
-
-            Logger.getInstance().addDataReceiver(new NT4Publisher());
-
             LoggedPowerDistribution.getInstance(0, PowerDistribution.ModuleType.kRev);
-
-        } else {
-            // setUseTiming(false); // Runs robot logger as fast as possible
-            Logger.getInstance().addDataReceiver(new NT4Publisher());
         }
 
         Logger.getInstance().start();
@@ -134,12 +133,7 @@ public class Robot extends LoggedRobot {
     public void testPeriodic() {}
 
     @Override
-    public void simulationInit() {
-        super.simulationInit();
-    }
-
-    @Override
     public void simulationPeriodic() {
-        REVPhysicsSim.getInstance().run();
+        SimRobot.getInstance().run();
     }
 }

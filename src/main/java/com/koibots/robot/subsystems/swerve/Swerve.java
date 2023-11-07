@@ -146,7 +146,6 @@ public class Swerve extends SubsystemBase {
         Logger.getInstance().processInputs("Front Right Swerve Module", frontRightState);
         Logger.getInstance().processInputs("Rear Left Swerve Module", rearLeftState);
         Logger.getInstance().processInputs("Rear Right Swerve Module", rearRightState);
-
     }
 
     @Override
@@ -154,10 +153,10 @@ public class Swerve extends SubsystemBase {
         gyroYaw.set(odometry.getEstimatedPosition().getRotation().getDegrees());
 
         Logger.getInstance().recordOutput("Sim/Odometry", odometry.getEstimatedPosition());
-        Logger.getInstance().recordOutput("Sim/FrontLeftModule", frontLeft.getModuleState());
-        Logger.getInstance().recordOutput("Sim/FrontRightModule", frontRight.getModuleState());
-        Logger.getInstance().recordOutput("Sim/RearLeftModule", rearLeft.getModuleState());
-        Logger.getInstance().recordOutput("Sim/RearRightModule", rearRight.getModuleState());
+        Logger.getInstance().recordOutput("Sim/FrontLeftModule", frontLeft.getModuleState(),
+                frontRight.getModuleState(),
+                rearLeft.getModuleState(),
+                rearRight.getModuleState());
     }
 
     public Pose2d getEstimatedPosition() {
