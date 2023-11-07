@@ -14,7 +14,7 @@
 package com.koibots.robot.subsystems.swerve;
 
 import com.koibots.robot.Robot;
-import com.koibots.robot.subsystems.swerve.SwerveModuleIO;
+
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.controller.SimpleMotorFeedforward;
 import edu.wpi.first.math.geometry.Rotation2d;
@@ -27,7 +27,7 @@ public class SwerveModule {
     private static final double WHEEL_RADIUS = Units.inchesToMeters(2.0);
 
     private final SwerveModuleIO io;
-    private final SwerveModuleIOInputsAutoLogged inputs = new SwerveModuleIOInputsAutoLogged();
+    private final SwerveModuleInputsAutoLogged inputs = new SwerveModuleInputsAutoLogged();
     private final int index;
 
     private final SimpleMotorFeedforward driveFeedforward;
@@ -69,7 +69,7 @@ public class SwerveModule {
 
     public void periodic() {
         io.updateInputs(inputs);
-        Logger.getInstance().processInputs("Drive/Module" + Integer.toString(index), inputs);
+        Logger.processInputs("Drive/Module" + Integer.toString(index), inputs);
 
         // On first cycle, reset relative turn encoder
         // Wait until absolute angle is nonzero in case it wasn't initialized yet

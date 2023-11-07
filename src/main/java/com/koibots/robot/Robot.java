@@ -7,6 +7,7 @@ package com.koibots.robot;
 import com.koibots.robot.constants.SimConstants;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.PowerDistribution;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import org.littletonrobotics.junction.LoggedRobot;
@@ -36,17 +37,17 @@ public class Robot extends LoggedRobot {
      */
     @Override
     public void robotInit() {
-        Logger.getInstance().recordMetadata("RobotName", "Swerve Chassis");
-        Logger.getInstance().recordMetadata("Date", BuildConstants.BUILD_DATE);
+        Logger.recordMetadata("RobotName", "Swerve Chassis");
+        Logger.recordMetadata("Date", BuildConstants.BUILD_DATE);
         if (!DriverStation.isFMSAttached()) {
-            Logger.getInstance().addDataReceiver(new NT4Publisher());
+            Logger.addDataReceiver(new NT4Publisher());
         }
 
         if (isReal()) {
             LoggedPowerDistribution.getInstance(0, PowerDistribution.ModuleType.kRev);
         }
 
-        Logger.getInstance().start();
+        Logger.start();
 
         // Instantiate our RobotContainer.
         // This will perform all our button bindings, and put our
@@ -110,11 +111,15 @@ public class Robot extends LoggedRobot {
         if (autonomousCommand != null) {
             autonomousCommand.cancel();
         }
+
+        robotContainer.configureButtonBindings();
     }
 
     /** This function is called periodically during operator control. */
     @Override
-    public void teleopPeriodic() {}
+    public void teleopPeriodic() {
+        
+    }
 
     @Override
     public void testInit() {
@@ -125,6 +130,11 @@ public class Robot extends LoggedRobot {
     /** This function is called periodically during test mode. */
     @Override
     public void testPeriodic() {}
+
+    @Override
+    public void simulationInit() {
+        SmartDashboard.putData("Field", SimConstants.FIELD);
+    }
 
     @Override
     public void simulationPeriodic() {

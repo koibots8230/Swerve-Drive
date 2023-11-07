@@ -4,18 +4,22 @@ package com.koibots.robot.subsystems.swerve;
 import com.koibots.robot.Robot;
 import com.koibots.robot.constants.ControlConstants;
 import com.koibots.robot.constants.PhysicalConstants;
+import com.koibots.robot.constants.SimConstants;
+
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.estimator.SwerveDrivePoseEstimator;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Transform2d;
 import edu.wpi.first.math.geometry.Translation2d;
+import edu.wpi.first.math.geometry.Twist2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
+import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
-import edu.wpi.first.wpilibj2.command.CommandBase;
+import edu.wpi.first.wpilibj.DriverStation;
+import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import org.littletonrobotics.junction.Logger;
-import org.littletonrobotics.junction.networktables.LoggedDashboardChooser;
 
 import java.util.function.BooleanSupplier;
 import java.util.function.DoubleSupplier;
@@ -27,6 +31,7 @@ import static edu.wpi.first.math.kinematics.SwerveDriveKinematics.desaturateWhee
 public class Swerve extends SubsystemBase {
     SwerveModule[] swerveModules;
     GyroIO gyro;
+    GyroIOInputsAutoLogged gyroInputs = new GyroIOInputsAutoLogged();
     SwerveDrivePoseEstimator odometry;
 
     public Swerve() {
@@ -42,16 +47,51 @@ public class Swerve extends SubsystemBase {
                         new SwerveModule(new SwerveModuleIOSim(), 3)
                 };
 
-                odometry = new SwerveDrivePoseEstimator(
-                    ControlConstants.SWERVE_KINEMATICS,
-                    new Rotation2d(),
+                gyro = new GyroIO() {};
 
-            );
+                odometry = new SwerveDrivePoseEstimator(
+                        ControlConstants.SWERVE_KINEMATICS,
+                        new Rotation2d(),
+                        getModulePositions(),
+                        new Pose2d()
+                );
 
                 break;
             case REPLAY:
 
         }
+    }
+
+    @Override
+    public void periodic() {
+        gyro.updateInputs(gyroInputs);
+        Logger.processInputs("Drive/Gyro", gyroInputs);
+    
+        swerveModules[0].periodic();
+        swerveModules[1].periodic();
+        swerveModules[2].periodic();
+        swerveModules[3].periodic();
+
+        // Stop moving when disabled
+        if (DriverStation.isDisabled()) {
+                swerveModules[0].stop();
+                swerveModules[1].stop();
+                swerveModules[2].stop();
+                swerveModules[3].stop();
+        }
+
+        // Log measured states
+        Logger.recordOutput("SwerveStates/Measured", getModuleStates());
+
+        // Log empty setpoint states when disabled
+        if (DriverStation.isDisabled()) {
+        Logger.recordOutput("SwerveStates/Setpoints", new SwerveModuleState[] {});
+        Logger.recordOutput("SwerveStates/SetpointsOptimized", new SwerveModuleState[] {});
+        }
+
+        // Update odometry
+        odometry.update(gyroInputs.yawPosition, getModulePositions());
+        Logger.recordOutput("Odometry/Robot", getEstimatedPose());
     }
 
     public void setModuleStates(SwerveModuleState[] states) {
@@ -61,36 +101,39 @@ public class Swerve extends SubsystemBase {
         swerveModules[3].setState(states[3]);
     }
 
-    public class TeleopCommand extends CommandBase {
+    public SwerveModuleState[] getModuleStates() {
+        return new SwerveModuleState[] {
+                swerveModules[0].getState(),
+                swerveModules[1].getState(),
+                swerveModules[2].getState(),
+                swerveModules[3].getState()
+        };
+    }
 
-        // Graph of algorithms here: https://www.desmos.com/calculator/w738aldioj
-        // TODO: Clean these up
-        enum ScalingAlgorithm {
-            Linear(
-                    (x) -> x
-            ),
-            Squared(
-                    (x) -> Math.signum(x) * x * x
-            ),
+    @Override
+    public void simulationPeriodic() {
+        ChassisSpeeds simSpeeds = ControlConstants.SWERVE_KINEMATICS.toChassisSpeeds(getModuleStates());
 
-            Cubed(
-                    (x) -> x * x * x
-            ),
+        gyroInputs.yawPosition.plus(Rotation2d.fromRadians(simSpeeds.omegaRadiansPerSecond));
+        gyroInputs.yawVelocityRadPerSec = simSpeeds.omegaRadiansPerSecond;
 
-            Cosine(
-                    (x) -> (-Math.signum(x) * Math.cos(Math.PI * 0.5 * x )) + (1 * Math.signum(x))
-            ),
+        SimConstants.FIELD.setRobotPose(getEstimatedPose());
+    }
 
-            CubedSquareRoot(
-                    (x) -> Math.signum(x) * Math.sqrt(Math.abs(x * x * x))
-            );
+    public SwerveModulePosition[] getModulePositions() {
+        return new SwerveModulePosition[] {
+                swerveModules[0].getPosition(),
+                swerveModules[1].getPosition(),
+                swerveModules[2].getPosition(),
+                swerveModules[3].getPosition()
+        };
+    }
 
-            public final Function<Double, Double> algorithm;
+    public Pose2d getEstimatedPose() {
+        return odometry.getEstimatedPosition();
+    }
 
-            private ScalingAlgorithm(Function<Double, Double> algorithm) {
-                this.algorithm = algorithm;
-            }
-        }
+    public class TeleopCommand extends Command {
 
 
         DoubleSupplier vxSupplier;
@@ -99,10 +142,10 @@ public class Swerve extends SubsystemBase {
         DoubleSupplier angleSupplier;
         BooleanSupplier crossSupplier;
         Function<Double, Double> scalingFunction;
-        LoggedDashboardChooser<ScalingAlgorithm> scalingChooser;
+        
         double previousTimestamp;
 
-        TeleopCommand(
+        public TeleopCommand(
                 DoubleSupplier vxSupplier,
                 DoubleSupplier vySupplier,
                 DoubleSupplier vThetaSupplier,
@@ -115,22 +158,20 @@ public class Swerve extends SubsystemBase {
             this.angleSupplier = angleSupplier;
             this.crossSupplier = crossSupplier;
 
-            scalingChooser.addDefaultOption("Linear", ScalingAlgorithm.Linear);
-            scalingChooser.addOption("Squared", ScalingAlgorithm.Squared);
-            scalingChooser.addOption("Cubed", ScalingAlgorithm.Cubed);
-            scalingChooser.addOption("Cosine", ScalingAlgorithm.Cosine);
-            scalingChooser.addOption("Fancy", ScalingAlgorithm.CubedSquareRoot);
+            
 
             addRequirements(Swerve.this);
+        }
 
-            this.withInterruptBehavior(InterruptionBehavior.kCancelIncoming);
+        public void setScalingAlgorithm(Function<Double, Double> algorithm) {
+            this.scalingFunction = algorithm;
         }
 
         @Override
         public void initialize() {
-            scalingFunction = scalingChooser.get().algorithm;
+            previousTimestamp = Logger.getRealTimestamp();
 
-            previousTimestamp = Logger.getInstance().getRealTimestamp();
+            System.out.println("Swerve Teleop Command Initialized");
         }
 
         @Override
@@ -162,36 +203,35 @@ public class Swerve extends SubsystemBase {
                         linearVelocity.getX() * PhysicalConstants.MAX_LINEAR_SPEED,
                         linearVelocity.getY() * PhysicalConstants.MAX_LINEAR_SPEED,
                         angularVelocity * PhysicalConstants.MAX_ANGULAR_VELOCITY,
-                        new Rotation2d() // TODO: Put actual estimated angle
+                        Swerve.this.getEstimatedPose().getRotation()
                 );
 
-                double periodSeconds = Logger.getInstance().getRealTimestamp() - previousTimestamp;
+                double periodSeconds = Logger.getRealTimestamp() - previousTimestamp;
 
-                var setpointTwist = new Pose2d()
+                Twist2d setpointTwist = new Pose2d()
                         .log(
                                 new Pose2d(
                                         speeds.vxMetersPerSecond * periodSeconds,
                                         speeds.vyMetersPerSecond * periodSeconds,
                                         new Rotation2d(speeds.omegaRadiansPerSecond * periodSeconds)));
 
-                var adjustedSpeeds =
+                ChassisSpeeds adjustedSpeeds =
                         new edu.wpi.first.math.kinematics.ChassisSpeeds(
                                 setpointTwist.dx / periodSeconds,
                                 setpointTwist.dy / periodSeconds,
                                 setpointTwist.dtheta / periodSeconds);
 
-                var targetModuleStates = ControlConstants.SWERVE_KINEMATICS.toSwerveModuleStates(adjustedSpeeds);
+                SwerveModuleState[] targetModuleStates = ControlConstants.SWERVE_KINEMATICS.toSwerveModuleStates(adjustedSpeeds);
 
                 desaturateWheelSpeeds(targetModuleStates, PhysicalConstants.MAX_LINEAR_SPEED);
 
                 if (adjustedSpeeds.vxMetersPerSecond == 0.0
                         && adjustedSpeeds.vyMetersPerSecond == 0.0
                         && adjustedSpeeds.omegaRadiansPerSecond == 0) {
-                    // TODO: Replace Rotation2d with actual previous state
-                    targetModuleStates[0] = new SwerveModuleState(0, new Rotation2d());
-                    targetModuleStates[1] = new SwerveModuleState(0, new Rotation2d());
-                    targetModuleStates[2] = new SwerveModuleState(0, new Rotation2d());
-                    targetModuleStates[3] = new SwerveModuleState(0, new Rotation2d());
+                    targetModuleStates[0] = new SwerveModuleState(0, swerveModules[0].getAngle());
+                    targetModuleStates[1] = new SwerveModuleState(0, swerveModules[1].getAngle());
+                    targetModuleStates[2] = new SwerveModuleState(0, swerveModules[2].getAngle());
+                    targetModuleStates[3] = new SwerveModuleState(0, swerveModules[3].getAngle());
                 }
 
                 Swerve.this.setModuleStates(targetModuleStates);
