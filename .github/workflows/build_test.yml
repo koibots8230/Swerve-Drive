@@ -1,0 +1,31 @@
+name: Test Build
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    name: Build
+
+    # The type of runner that the job will run on
+    runs-on: ubuntu-latest
+
+    # This grabs the WPILib docker container
+    container: wpilib/roborio-cross-ubuntu:2024-22.04
+
+    steps:
+    - uses: actions/checkout@v3
+
+    # Grant execute permission for gradlew
+    - name: Grant execute permission for gradlew
+      run: chmod +x gradlew
+
+    # Runs a single command using the runners shell
+    - name: Compile and run tests on robot code for project ${{ matrix.project-name }}
+      run: ./gradlew test
