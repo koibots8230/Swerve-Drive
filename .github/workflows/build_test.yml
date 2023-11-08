@@ -11,8 +11,11 @@ permissions:
 
 jobs:
   build:
+<<<<<<< HEAD
     name: Build
 
+=======
+>>>>>>> 23c6a87125d3fdb14c79f5887ecc662d2bd4b09f
     # The type of runner that the job will run on
     runs-on: ubuntu-latest
 
