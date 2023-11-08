@@ -56,6 +56,8 @@ public class SwerveCommand extends Command {
 
     @Override
     public void execute() {
+
+
         Logger.recordOutput("Swerve Command Inputs", new double[] {
                 vxSupplier.getAsDouble(), vySupplier.getAsDouble(), vThetaSupplier.getAsDouble()
         });
@@ -80,9 +82,9 @@ public class SwerveCommand extends Command {
             //angularVelocity = scalingFunction.apply(angularVelocity);
 
             ChassisSpeeds speeds = ChassisSpeeds.fromFieldRelativeSpeeds(
-                    linearMagnitude * linearDirection.getCos() * PhysicalConstants.MAX_LINEAR_SPEED,
-                    linearMagnitude * linearDirection.getSin() * PhysicalConstants.MAX_LINEAR_SPEED,
-                    angularVelocity * PhysicalConstants.MAX_ANGULAR_VELOCITY,
+                    linearMagnitude * linearDirection.getCos() * PhysicalConstants.MAX_LINEAR_SPEED_METERS_PER_SECOND,
+                    linearMagnitude * linearDirection.getSin() * PhysicalConstants.MAX_LINEAR_SPEED_METERS_PER_SECOND,
+                    angularVelocity * PhysicalConstants.MAX_ANGULAR_VELOCITY_RADIANS_PER_SECOND,
                     Swerve.get().getEstimatedPose().getRotation()
             );
 
@@ -92,7 +94,7 @@ public class SwerveCommand extends Command {
 
             SwerveModuleState[] targetModuleStates = ControlConstants.SWERVE_KINEMATICS.toSwerveModuleStates(speeds);
 
-            desaturateWheelSpeeds(targetModuleStates, PhysicalConstants.MAX_LINEAR_SPEED);
+            desaturateWheelSpeeds(targetModuleStates, PhysicalConstants.MAX_LINEAR_SPEED_METERS_PER_SECOND);
 
             if (speeds.vxMetersPerSecond == 0.0
                     && speeds.vyMetersPerSecond == 0.0
