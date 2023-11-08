@@ -1,26 +1,29 @@
-name: Gradle Build
+name: Test Build
 
 on:
   push:
     branches: [ "main" ]
-
-on: worflow_dispatch
+  pull_request:
+    branches: [ "main" ]
 
 permissions:
   contents: read
 
 jobs:
   build:
-    runs-on: windows-latest
+    # The type of runner that the job will run on
+    runs-on: ubuntu-latest
+
+    # This grabs the WPILib docker container
+    container: wpilib/roborio-cross-ubuntu:2024-22.04
 
     steps:
     - uses: actions/checkout@v3
-    - name: Set up JDK 11
-      uses: actions/setup-java@v3
-      with:
-        java-version: '17'
-        distribution: 'temurin'
-    - name: Build with Gradle
-      uses: gradle/gradle-build-action@67421db6bd0bf253fb4bd25b31ebb98943c375e1
-      with:
-        arguments: build
+
+    # Grant execute permission for gradlew
+    - name: Grant execute permission for gradlew
+      run: cd "${{ matrix.directory }}" && chmod +x gradlew
+
+    # Runs a single command using the runners shell
+    - name: Compile and run tests on robot code for project ${{ matrix.project-name }}
+      run: cd "${{ matrix.directory }}" && ./gradlew test
