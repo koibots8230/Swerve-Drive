@@ -58,6 +58,7 @@ repositories {
         }
     }
     mavenLocal()
+    mavenCentral()
 }
 
 configurations.all {
