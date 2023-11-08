@@ -6,7 +6,7 @@ import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.button.CommandGenericHID;
 import edu.wpi.first.wpilibj2.command.button.CommandJoystick;
-import edu.wpi.first.wpilibj2.command.button.CommandPS5Controller;
+import edu.wpi.first.wpilibj2.command.button.CommandPS4Controller;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.JoystickButton;
 import org.littletonrobotics.junction.networktables.LoggedDashboardChooser;
@@ -25,7 +25,7 @@ import java.util.function.Function;
 public class RobotContainer {
     // Controllers
     private final CommandXboxController xbox = new CommandXboxController(0);
-    private final CommandPS5Controller ps5 = new CommandPS5Controller(0);
+    private final CommandPS4Controller ps5 = new CommandPS4Controller(0);
     private final CommandJoystick joystick = new CommandJoystick(0);
     private final CommandGenericHID drone = new CommandGenericHID(0);
 
