@@ -109,7 +109,12 @@ public class SwerveCommand extends Command {
             previousTimestamp = Logger.getRealTimestamp();
             Swerve.get().setModuleStates(targetModuleStates);
         } else { // Set Cross
-
+            Swerve.get().setModuleStates(new SwerveModuleState[] {
+                        new SwerveModuleState(0, Rotation2d.fromDegrees(45)),
+                        new SwerveModuleState(0, Rotation2d.fromDegrees(-45)),
+                        new SwerveModuleState(0, Rotation2d.fromDegrees(-45)),
+                        new SwerveModuleState(0, Rotation2d.fromDegrees(45))
+            });
         }
     }
 }
