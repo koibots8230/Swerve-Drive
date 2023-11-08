@@ -4,6 +4,8 @@ on:
   push:
     branches: [ "main" ]
 
+on: worflow_dispatch
+
 permissions:
   contents: read
 
