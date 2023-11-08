@@ -1,5 +1,6 @@
 package com.koibots.robot;
 
+import com.koibots.robot.command.teleop.SwerveCommand;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj2.command.Command;
@@ -9,8 +10,6 @@ import edu.wpi.first.wpilibj2.command.button.CommandPS5Controller;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.JoystickButton;
 import org.littletonrobotics.junction.networktables.LoggedDashboardChooser;
-
-import com.koibots.robot.subsystems.swerve.Swerve;
 
 import static com.koibots.robot.subsystems.Subsystems.Swerve;
 
@@ -108,62 +107,50 @@ public class RobotContainer {
     * {@link JoystickButton}.
     */
     public void configureButtonBindings() {
-        Swerve.TeleopCommand swerveCommand;
-
-        switch (controllerChooser.get()) {
-            case Xbox:
+        SwerveCommand swerveCommand = switch (controllerChooser.get()) {
+            case Xbox -> {
                 System.out.println("Xbox Controller Initialized");
-
-                swerveCommand = Swerve.get().new TeleopCommand(
-                    () -> xbox.getLeftY(),
-                    () -> xbox.getLeftX(),
-                    () -> xbox.getRightX(),
-                    () -> xbox.getHID().getPOV(),
-                    () -> xbox.getHID().getAButton()
+                yield new SwerveCommand(
+                        () -> -xbox.getLeftY(),
+                        () -> -xbox.getLeftX(),
+                        xbox::getRightX,
+                        () -> xbox.getHID().getPOV(),
+                        () -> xbox.getHID().getAButton()
                 );
-
-                break;
-            case PS5:
+            }
+            case PS5 -> {
                 System.out.println("PS5 Controller Initialized");
-
-                swerveCommand = Swerve.get().new TeleopCommand(
-                    () -> -ps5.getLeftY(),
-                    () -> -ps5.getLeftX(),
-                    () -> ps5.getRightX(),
-                    () -> ps5.getHID().getPOV(),
-                    () -> ps5.getHID().getCrossButton()
+                yield new SwerveCommand(
+                        () -> -ps5.getLeftY(),
+                        () -> -ps5.getLeftX(),
+                        () -> -ps5.getHID().getRawAxis(2),
+                        () -> ps5.getHID().getPOV(),
+                        () -> ps5.getHID().getCrossButton()
                 );
-            
-                break;
-            case Joystick:
+            }
+            case Joystick -> {
                 System.out.println("PS5 Controller Initialized");
-
-                swerveCommand = Swerve.get().new TeleopCommand(
-                    () ->  joystick.getY(),
-                    () -> joystick.getX(),
-                    () -> joystick.getTwist(),
-                    () -> joystick.getHID().getPOV(),
-                    () -> joystick.getHID().getTrigger()
+                yield new SwerveCommand(
+                        joystick::getY,
+                        joystick::getX,
+                        joystick::getTwist,
+                        () -> joystick.getHID().getPOV(),
+                        () -> joystick.getHID().getTrigger()
                 );
-
-                break;
-            case DroneController:
+            }
+            case DroneController -> {
                 System.out.println("Drone Controller Initialized");
-
-                swerveCommand = Swerve.get().new TeleopCommand(
-                    null,
-                    null,
-                    null,
-                    null,
-                    null
+                yield new SwerveCommand(
+                        null,
+                        null,
+                        null,
+                        null,
+                        null
                 );
+            }
+            default -> null;
+        };
 
-                break;
-            default:
-                swerveCommand = null;
-        }
-
-        //CommandScheduler.getInstance().cancel(swerveCommand);
         swerveCommand.setScalingAlgorithm(scalingChooser.get().algorithm);
         Swerve.get().setDefaultCommand(swerveCommand);
     }

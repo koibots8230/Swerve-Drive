@@ -39,6 +39,7 @@ public class Robot extends LoggedRobot {
     public void robotInit() {
         Logger.recordMetadata("RobotName", "Swerve Chassis");
         Logger.recordMetadata("Date", BuildConstants.BUILD_DATE);
+
         if (!DriverStation.isFMSAttached()) {
             Logger.addDataReceiver(new NT4Publisher());
         }

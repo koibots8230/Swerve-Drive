@@ -12,9 +12,9 @@ public class ControlConstants {
     private static final double ROBOT_LENGTH = Units.inchesToMeters(30);
 
     public static final SwerveDriveKinematics SWERVE_KINEMATICS = new SwerveDriveKinematics(
-            new Translation2d(ROBOT_LENGTH / 2, -ROBOT_WIDTH / 2), // Front Right
             new Translation2d(ROBOT_LENGTH / 2, ROBOT_WIDTH / 2), // Front Left
+            new Translation2d(ROBOT_LENGTH / 2, -ROBOT_WIDTH / 2), // Front Right
             new Translation2d(-ROBOT_LENGTH / 2, ROBOT_WIDTH / 2), // Back Left
-            new Translation2d(-ROBOT_LENGTH / 2, -ROBOT_WIDTH / 2)  // Back Right
+            new Translation2d(-ROBOT_LENGTH / 2, -ROBOT_WIDTH / 2)  // Front Right
     );
 }
