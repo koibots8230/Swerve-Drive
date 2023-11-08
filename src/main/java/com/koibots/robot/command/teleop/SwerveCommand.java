@@ -61,7 +61,7 @@ public class SwerveCommand extends Command {
         });
 
 
-        if (!this.crossSupplier.getAsBoolean()) { // Normal Field Oriented
+        if (!this.crossSupplier.getAsBoolean()) { // Normal Field Oriented Drive
             double linearMagnitude =
                     MathUtil.applyDeadband(
                             Math.hypot(vxSupplier.getAsDouble(), vySupplier.getAsDouble()),
@@ -103,7 +103,7 @@ public class SwerveCommand extends Command {
                 targetModuleStates[2] = new SwerveModuleState(0, currentStates[2].angle);
                 targetModuleStates[3] = new SwerveModuleState(0, currentStates[3].angle);
             }
-            
+
             previousTimestamp = Logger.getRealTimestamp();
             Swerve.get().setModuleStates(targetModuleStates);
         } else { // Set Cross

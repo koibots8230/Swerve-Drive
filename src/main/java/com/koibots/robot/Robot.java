@@ -25,7 +25,7 @@ public class Robot extends LoggedRobot {
         REPLAY
     }
 
-    private static final Mode robotMode = isReal() ? Mode.REAL : SimConstants.setReplay ? Mode.REPLAY : Mode.SIM;
+    private static final Mode robotMode = isReal() ? Mode.REAL : SimConstants.SET_REPLAY ? Mode.REPLAY : Mode.SIM;
 
     public static Mode getMode() {
         return robotMode;
