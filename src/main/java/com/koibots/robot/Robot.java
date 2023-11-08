@@ -4,7 +4,6 @@
 
 package com.koibots.robot;
 
-import com.koibots.robot.constants.SimConstants;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.PowerDistribution;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
@@ -25,7 +24,7 @@ public class Robot extends LoggedRobot {
         REPLAY
     }
 
-    private static final Mode robotMode = isReal() ? Mode.REAL : SimConstants.SET_REPLAY ? Mode.REPLAY : Mode.SIM;
+    private static final Mode robotMode = isReal() ? Mode.REAL : Constants.SET_REPLAY ? Mode.REPLAY : Mode.SIM;
 
     public static Mode getMode() {
         return robotMode;
@@ -134,7 +133,7 @@ public class Robot extends LoggedRobot {
 
     @Override
     public void simulationInit() {
-        SmartDashboard.putData("Field", SimConstants.FIELD);
+        SmartDashboard.putData("Field", Constants.FIELD);
     }
 
     @Override

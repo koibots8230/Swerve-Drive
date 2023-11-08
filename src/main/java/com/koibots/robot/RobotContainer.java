@@ -4,7 +4,6 @@ import com.koibots.robot.command.teleop.SwerveCommand;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj2.command.Command;
-import edu.wpi.first.wpilibj2.command.button.CommandGenericHID;
 import edu.wpi.first.wpilibj2.command.button.CommandJoystick;
 import edu.wpi.first.wpilibj2.command.button.CommandPS4Controller;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
@@ -27,7 +26,7 @@ public class RobotContainer {
     private final CommandXboxController xbox = new CommandXboxController(0);
     private final CommandPS4Controller ps5 = new CommandPS4Controller(0);
     private final CommandJoystick joystick = new CommandJoystick(0);
-    private final CommandGenericHID drone = new CommandGenericHID(0);
+    //private final CommandGenericHID drone = new CommandGenericHID(0);
 
     enum Controller {
         Xbox,

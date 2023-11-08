@@ -1,9 +1,8 @@
 package com.koibots.robot.subsystems.swerve;
 
 
+import com.koibots.robot.Constants;
 import com.koibots.robot.Robot;
-import com.koibots.robot.constants.ControlConstants;
-import com.koibots.robot.constants.SimConstants;
 
 import edu.wpi.first.math.estimator.SwerveDrivePoseEstimator;
 import edu.wpi.first.math.geometry.Pose2d;
@@ -38,7 +37,7 @@ public class Swerve extends SubsystemBase {
                 gyro = new GyroIO() {};
 
                 odometry = new SwerveDrivePoseEstimator(
-                        ControlConstants.SWERVE_KINEMATICS,
+                        Constants.SWERVE_KINEMATICS,
                         new Rotation2d(),
                         getModulePositions(),
                         new Pose2d()
@@ -85,14 +84,14 @@ public class Swerve extends SubsystemBase {
     }
 
     public void simulationPeriodic() {
-        ChassisSpeeds simSpeeds = ControlConstants.SWERVE_KINEMATICS.toChassisSpeeds(getModuleStates());
+        ChassisSpeeds simSpeeds = Constants.SWERVE_KINEMATICS.toChassisSpeeds(getModuleStates());
 
         Logger.recordOutput("Calculated Speeds", new double[] {simSpeeds.vxMetersPerSecond, simSpeeds.vyMetersPerSecond, simSpeeds.omegaRadiansPerSecond});
 
         gyroInputs.yawPosition = gyroInputs.yawPosition.plus(Rotation2d.fromRadians(simSpeeds.omegaRadiansPerSecond * 0.02));
         gyroInputs.yawVelocityRadPerSec = simSpeeds.omegaRadiansPerSecond;
 
-        SimConstants.FIELD.setRobotPose(getEstimatedPose());
+        Constants.FIELD.setRobotPose(getEstimatedPose());
     }
 
     public void setModuleStates(SwerveModuleState[] states) {

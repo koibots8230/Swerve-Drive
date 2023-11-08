@@ -1,7 +1,6 @@
 package com.koibots.robot.command.teleop;
 
-import com.koibots.robot.constants.ControlConstants;
-import com.koibots.robot.constants.PhysicalConstants;
+import com.koibots.robot.Constants;
 
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.geometry.Rotation2d;
@@ -67,14 +66,14 @@ public class SwerveCommand extends Command {
             double linearMagnitude =
                     MathUtil.applyDeadband(
                             Math.hypot(vxSupplier.getAsDouble(), vySupplier.getAsDouble()),
-                            ControlConstants.DEADBAND,
+                            Constants.DEADBAND,
                             1
                     );
 
             Rotation2d linearDirection =
                     new Rotation2d(vxSupplier.getAsDouble(), vySupplier.getAsDouble());
 
-            double angularVelocity = MathUtil.applyDeadband(vThetaSupplier.getAsDouble(), ControlConstants.DEADBAND);
+            double angularVelocity = MathUtil.applyDeadband(vThetaSupplier.getAsDouble(), Constants.DEADBAND);
             // TODO: Implement POV for angle alignment
 
             // Apply Scaling
@@ -82,9 +81,9 @@ public class SwerveCommand extends Command {
             //angularVelocity = scalingFunction.apply(angularVelocity);
 
             ChassisSpeeds speeds = ChassisSpeeds.fromFieldRelativeSpeeds(
-                    linearMagnitude * linearDirection.getCos() * PhysicalConstants.MAX_LINEAR_SPEED_METERS_PER_SECOND,
-                    linearMagnitude * linearDirection.getSin() * PhysicalConstants.MAX_LINEAR_SPEED_METERS_PER_SECOND,
-                    angularVelocity * PhysicalConstants.MAX_ANGULAR_VELOCITY_RADIANS_PER_SECOND,
+                    linearMagnitude * linearDirection.getCos() * Constants.MAX_LINEAR_SPEED_METERS_PER_SECOND,
+                    linearMagnitude * linearDirection.getSin() * Constants.MAX_LINEAR_SPEED_METERS_PER_SECOND,
+                    angularVelocity * Constants.MAX_ANGULAR_VELOCITY_RADIANS_PER_SECOND,
                     Swerve.get().getEstimatedPose().getRotation()
             );
 
@@ -92,9 +91,9 @@ public class SwerveCommand extends Command {
 
             ChassisSpeeds.discretize(speeds, periodSeconds);
 
-            SwerveModuleState[] targetModuleStates = ControlConstants.SWERVE_KINEMATICS.toSwerveModuleStates(speeds);
+            SwerveModuleState[] targetModuleStates = Constants.SWERVE_KINEMATICS.toSwerveModuleStates(speeds);
 
-            desaturateWheelSpeeds(targetModuleStates, PhysicalConstants.MAX_LINEAR_SPEED_METERS_PER_SECOND);
+            desaturateWheelSpeeds(targetModuleStates, Constants.MAX_LINEAR_SPEED_METERS_PER_SECOND);
 
             if (speeds.vxMetersPerSecond == 0.0
                     && speeds.vyMetersPerSecond == 0.0
