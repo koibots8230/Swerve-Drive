@@ -4,14 +4,32 @@
 
 package com.koibots.robot;
 
-import edu.wpi.first.wpilibj.TimedRobot;
+import com.koibots.robot.constants.SimConstants;
+import edu.wpi.first.wpilibj.DriverStation;
+import edu.wpi.first.wpilibj.PowerDistribution;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
+import org.littletonrobotics.junction.LoggedRobot;
+import org.littletonrobotics.junction.Logger;
+import org.littletonrobotics.junction.inputs.LoggedPowerDistribution;
+import org.littletonrobotics.junction.networktables.NT4Publisher;
 
-public class Robot extends TimedRobot {
+public class Robot extends LoggedRobot {
     private Command autonomousCommand;
-
     private RobotContainer robotContainer;
+
+    public enum Mode {
+        REAL,
+        SIM,
+        REPLAY
+    }
+
+    private static final Mode robotMode = isReal() ? Mode.REAL : SimConstants.SET_REPLAY ? Mode.REPLAY : Mode.SIM;
+
+    public static Mode getMode() {
+        return robotMode;
+    }
 
     /**
      * This function is run when the robot is first started up and should be used for any
@@ -19,10 +37,23 @@ public class Robot extends TimedRobot {
      */
     @Override
     public void robotInit() {
+        Logger.recordMetadata("RobotName", "Swerve Chassis");
+        Logger.recordMetadata("Date", BuildConstants.BUILD_DATE);
+
+        if (!DriverStation.isFMSAttached()) {
+            Logger.addDataReceiver(new NT4Publisher());
+        }
+
+        if (isReal()) {
+            LoggedPowerDistribution.getInstance(0, PowerDistribution.ModuleType.kRev);
+        }
+
+        Logger.start();
+
         // Instantiate our RobotContainer.
         // This will perform all our button bindings, and put our
         // autonomous chooser on the dashboard.
-        robotContainer = new RobotContainer();
+        robotContainer = new RobotContainer(robotMode);
     }
 
     /**
@@ -55,7 +86,6 @@ public class Robot extends TimedRobot {
     @Override
     public void autonomousInit() {
         autonomousCommand = robotContainer.getAutonomousCommand();
-
         /*
          * String autoSelected = SmartDashboard.getString("Auto Selector",
          * "Default"); switch(autoSelected) { case "My Auto": autonomousCommand
@@ -82,11 +112,15 @@ public class Robot extends TimedRobot {
         if (autonomousCommand != null) {
             autonomousCommand.cancel();
         }
+
+        robotContainer.configureButtonBindings();
     }
 
     /** This function is called periodically during operator control. */
     @Override
-    public void teleopPeriodic() {}
+    public void teleopPeriodic() {
+        
+    }
 
     @Override
     public void testInit() {
@@ -97,4 +131,14 @@ public class Robot extends TimedRobot {
     /** This function is called periodically during test mode. */
     @Override
     public void testPeriodic() {}
+
+    @Override
+    public void simulationInit() {
+        SmartDashboard.putData("Field", SimConstants.FIELD);
+    }
+
+    @Override
+    public void simulationPeriodic() {
+        
+    }
 }
