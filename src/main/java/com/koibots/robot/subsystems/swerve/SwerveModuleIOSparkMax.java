@@ -1,4 +1,3 @@
 package com.koibots.robot.subsystems.swerve;
 
-public class SwerveModuleIOSparkMax implements SwerveModuleIO {
-}
+public class SwerveModuleIOSparkMax implements SwerveModuleIO {}
