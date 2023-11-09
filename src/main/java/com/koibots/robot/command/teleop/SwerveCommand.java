@@ -1,10 +1,10 @@
 package com.koibots.robot.command.teleop;
 
+import com.koibots.robot.Constants;
+
 import static com.koibots.robot.subsystems.Subsystems.Swerve;
 import static edu.wpi.first.math.kinematics.SwerveDriveKinematics.desaturateWheelSpeeds;
 
-import com.koibots.robot.constants.ControlConstants;
-import com.koibots.robot.constants.PhysicalConstants;
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
@@ -57,47 +57,36 @@ public class SwerveCommand extends Command {
     Logger.recordOutput(
         "Swerve Command Inputs",
         new double[] {
-          vxSupplier.getAsDouble(), vySupplier.getAsDouble(), vThetaSupplier.getAsDouble()
+            vxSupplier.getAsDouble(), vySupplier.getAsDouble(), vThetaSupplier.getAsDouble()
         });
 
     if (!this.crossSupplier.getAsBoolean()) { // Normal Field Oriented Drive
-      double linearMagnitude =
-          MathUtil.applyDeadband(
-              Math.hypot(vxSupplier.getAsDouble(), vySupplier.getAsDouble()),
-              ControlConstants.DEADBAND,
-              1);
+      double linearMagnitude = MathUtil.applyDeadband(
+          Math.hypot(vxSupplier.getAsDouble(), vySupplier.getAsDouble()),
+          Constants.DEADBAND,
+          1);
 
-      Rotation2d linearDirection =
-          new Rotation2d(vxSupplier.getAsDouble(), vySupplier.getAsDouble());
+      Rotation2d linearDirection = new Rotation2d(vxSupplier.getAsDouble(), vySupplier.getAsDouble());
 
-      double angularVelocity =
-          MathUtil.applyDeadband(vThetaSupplier.getAsDouble(), ControlConstants.DEADBAND);
       // TODO: Implement POV for angle alignment
+      double angularVelocity = MathUtil.applyDeadband(vThetaSupplier.getAsDouble(), Constants.DEADBAND);
 
       // Apply Scaling
       linearMagnitude = scalingFunction.apply(linearMagnitude);
       // angularVelocity = scalingFunction.apply(angularVelocity);
 
-      ChassisSpeeds speeds =
-          ChassisSpeeds.fromFieldRelativeSpeeds(
-              linearMagnitude
-                  * linearDirection.getCos()
-                  * PhysicalConstants.MAX_LINEAR_SPEED_METERS_PER_SECOND,
-              linearMagnitude
-                  * linearDirection.getSin()
-                  * PhysicalConstants.MAX_LINEAR_SPEED_METERS_PER_SECOND,
-              angularVelocity * PhysicalConstants.MAX_ANGULAR_VELOCITY_RADIANS_PER_SECOND,
-              Swerve.get().getEstimatedPose().getRotation());
-
+      ChassisSpeeds speeds = ChassisSpeeds.fromFieldRelativeSpeeds(
+          linearMagnitude * linearDirection.getCos() * Constants.MAX_LINEAR_SPEED_METERS_PER_SECOND,
+          linearMagnitude * linearDirection.getSin() * Constants.MAX_LINEAR_SPEED_METERS_PER_SECOND,
+          angularVelocity * Constants.MAX_ANGULAR_VELOCITY_RADIANS_PER_SECOND,
+          Swerve.get().getEstimatedPose().getRotation());
       double periodSeconds = Logger.getRealTimestamp() - previousTimestamp;
 
       ChassisSpeeds.discretize(speeds, periodSeconds);
 
-      SwerveModuleState[] targetModuleStates =
-          ControlConstants.SWERVE_KINEMATICS.toSwerveModuleStates(speeds);
+      SwerveModuleState[] targetModuleStates = Constants.SWERVE_KINEMATICS.toSwerveModuleStates(speeds);
 
-      desaturateWheelSpeeds(
-          targetModuleStates, PhysicalConstants.MAX_LINEAR_SPEED_METERS_PER_SECOND);
+      desaturateWheelSpeeds(targetModuleStates, Constants.MAX_LINEAR_SPEED_METERS_PER_SECOND);
 
       if (speeds.vxMetersPerSecond == 0.0
           && speeds.vyMetersPerSecond == 0.0
@@ -115,10 +104,10 @@ public class SwerveCommand extends Command {
       Swerve.get()
           .setModuleStates(
               new SwerveModuleState[] {
-                new SwerveModuleState(0, Rotation2d.fromDegrees(45)),
-                new SwerveModuleState(0, Rotation2d.fromDegrees(-45)),
-                new SwerveModuleState(0, Rotation2d.fromDegrees(-45)),
-                new SwerveModuleState(0, Rotation2d.fromDegrees(45))
+                  new SwerveModuleState(0, Rotation2d.fromDegrees(45)),
+                  new SwerveModuleState(0, Rotation2d.fromDegrees(-45)),
+                  new SwerveModuleState(0, Rotation2d.fromDegrees(-45)),
+                  new SwerveModuleState(0, Rotation2d.fromDegrees(45))
               });
     }
   }

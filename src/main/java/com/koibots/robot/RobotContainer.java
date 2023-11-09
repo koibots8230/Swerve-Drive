@@ -6,7 +6,6 @@ import com.koibots.robot.command.teleop.SwerveCommand;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj2.command.Command;
-import edu.wpi.first.wpilibj2.command.button.CommandGenericHID;
 import edu.wpi.first.wpilibj2.command.button.CommandJoystick;
 import edu.wpi.first.wpilibj2.command.button.CommandPS4Controller;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
@@ -25,7 +24,7 @@ public class RobotContainer {
   private final CommandXboxController xbox = new CommandXboxController(0);
   private final CommandPS4Controller ps5 = new CommandPS4Controller(0);
   private final CommandJoystick joystick = new CommandJoystick(0);
-  private final CommandGenericHID drone = new CommandGenericHID(0);
+  // private final CommandGenericHID drone = new CommandGenericHID(0);
 
   enum Controller {
     Xbox,
@@ -54,10 +53,11 @@ public class RobotContainer {
     }
   }
 
-  LoggedDashboardChooser<ScalingAlgorithm> scalingChooser =
-      new LoggedDashboardChooser<>("Scaling Algorithm");
+  LoggedDashboardChooser<ScalingAlgorithm> scalingChooser = new LoggedDashboardChooser<>("Scaling Algorithm");
 
-  /** The container for the robot. Contains subsystems, OI devices, and commands. */
+  /**
+   * The container for the robot. Contains subsystems, OI devices, and commands.
+   */
   public RobotContainer(Robot.Mode mode) {
     switch (mode) {
       case REPLAY:
@@ -83,47 +83,49 @@ public class RobotContainer {
   }
 
   /**
-   * Use this method to define your button->command mappings. Buttons can be created by
-   * instantiating a {@link edu.wpi.first.wpilibj.GenericHID} or one of its subclasses ({@link
-   * edu.wpi.first.wpilibj.Joystick} or {@link XboxController}), and then calling passing it to a
+   * Use this method to define your button->command mappings. Buttons can be
+   * created by
+   * instantiating a {@link edu.wpi.first.wpilibj.GenericHID} or one of its
+   * subclasses ({@link
+   * edu.wpi.first.wpilibj.Joystick} or {@link XboxController}), and then calling
+   * passing it to a
    * {@link JoystickButton}.
    */
   public void configureButtonBindings() {
-    SwerveCommand swerveCommand =
-        switch (controllerChooser.get()) {
-          case Xbox -> {
-            System.out.println("Xbox Controller Initialized");
-            yield new SwerveCommand(
-                () -> -xbox.getLeftY(),
-                () -> -xbox.getLeftX(),
-                xbox::getRightX,
-                () -> xbox.getHID().getPOV(),
-                () -> xbox.getHID().getAButton());
-          }
-          case PS5 -> {
-            System.out.println("PS5 Controller Initialized");
-            yield new SwerveCommand(
-                () -> -ps5.getLeftY(),
-                () -> -ps5.getLeftX(),
-                () -> -ps5.getHID().getRawAxis(2),
-                () -> ps5.getHID().getPOV(),
-                () -> ps5.getHID().getCrossButton());
-          }
-          case Joystick -> {
-            System.out.println("PS5 Controller Initialized");
-            yield new SwerveCommand(
-                joystick::getY,
-                joystick::getX,
-                joystick::getTwist,
-                () -> joystick.getHID().getPOV(),
-                () -> joystick.getHID().getTrigger());
-          }
-          case DroneController -> {
-            System.out.println("Drone Controller Initialized");
-            yield new SwerveCommand(null, null, null, null, null);
-          }
-          default -> null;
-        };
+    SwerveCommand swerveCommand = switch (controllerChooser.get()) {
+      case Xbox -> {
+        System.out.println("Xbox Controller Initialized");
+        yield new SwerveCommand(
+            () -> -xbox.getLeftY(),
+            () -> -xbox.getLeftX(),
+            xbox::getRightX,
+            () -> xbox.getHID().getPOV(),
+            () -> xbox.getHID().getAButton());
+      }
+      case PS5 -> {
+        System.out.println("PS5 Controller Initialized");
+        yield new SwerveCommand(
+            () -> -ps5.getLeftY(),
+            () -> -ps5.getLeftX(),
+            () -> -ps5.getHID().getRawAxis(2),
+            () -> ps5.getHID().getPOV(),
+            () -> ps5.getHID().getCrossButton());
+      }
+      case Joystick -> {
+        System.out.println("PS5 Controller Initialized");
+        yield new SwerveCommand(
+            joystick::getY,
+            joystick::getX,
+            joystick::getTwist,
+            () -> joystick.getHID().getPOV(),
+            () -> joystick.getHID().getTrigger());
+      }
+      case DroneController -> {
+        System.out.println("Drone Controller Initialized");
+        yield new SwerveCommand(null, null, null, null, null);
+      }
+      default -> null;
+    };
 
     swerveCommand.setScalingAlgorithm(scalingChooser.get().algorithm);
     Swerve.get().setDefaultCommand(swerveCommand);
