@@ -23,8 +23,7 @@ public class SwerveCommand extends Command {
     DoubleSupplier vThetaSupplier;
     DoubleSupplier angleSupplier;
     BooleanSupplier crossSupplier;
-    Function<Double, Double> scalingFunction;
-
+    Function<Double, Double> scalingAlgorithm;
     double previousTimestamp;
 
     ProfiledPIDController angleAlignmentController;
@@ -34,12 +33,14 @@ public class SwerveCommand extends Command {
             DoubleSupplier vySupplier,
             DoubleSupplier vThetaSupplier,
             DoubleSupplier angleSupplier,
-            BooleanSupplier crossSupplier) {
+            BooleanSupplier crossSupplier,
+            Function<Double, Double> scalingAlgorithm) {
         this.vxSupplier = vxSupplier;
         this.vySupplier = vySupplier;
         this.vThetaSupplier = vThetaSupplier;
         this.angleSupplier = angleSupplier;
         this.crossSupplier = crossSupplier;
+        this.scalingAlgorithm = scalingAlgorithm;
 
         angleAlignmentController = new ProfiledPIDController(
                 0.2,
@@ -54,14 +55,12 @@ public class SwerveCommand extends Command {
     }
 
     public void setScalingAlgorithm(Function<Double, Double> algorithm) {
-        this.scalingFunction = algorithm;
+
     }
 
     @Override
     public void initialize() {
         previousTimestamp = Logger.getRealTimestamp();
-
-        System.out.println("Swerve Teleop Command Initialized");
     }
 
     @Override
@@ -70,7 +69,8 @@ public class SwerveCommand extends Command {
         Logger.recordOutput(
                 "Swerve Command Inputs",
                 new double[] {
-                        vxSupplier.getAsDouble(), vySupplier.getAsDouble(), vThetaSupplier.getAsDouble()
+                        vxSupplier.getAsDouble(), vySupplier.getAsDouble(),
+                        vThetaSupplier.getAsDouble()
                 });
 
         if (!this.crossSupplier.getAsBoolean()) { // Normal Field Oriented Drive
@@ -93,12 +93,14 @@ public class SwerveCommand extends Command {
             }
 
             // Apply Scaling
-            linearMagnitude = scalingFunction.apply(linearMagnitude);
+            linearMagnitude = scalingAlgorithm.apply(linearMagnitude);
             // angularVelocity = scalingFunction.apply(angularVelocity);
 
             ChassisSpeeds speeds = ChassisSpeeds.fromFieldRelativeSpeeds(
-                    linearMagnitude * linearDirection.getCos() * Constants.MAX_LINEAR_SPEED_METERS_PER_SECOND,
-                    linearMagnitude * linearDirection.getSin() * Constants.MAX_LINEAR_SPEED_METERS_PER_SECOND,
+                    linearMagnitude * linearDirection.getCos()
+                            * Constants.MAX_LINEAR_SPEED_METERS_PER_SECOND,
+                    linearMagnitude * linearDirection.getSin()
+                            * Constants.MAX_LINEAR_SPEED_METERS_PER_SECOND,
                     angularVelocity * Constants.MAX_ANGULAR_VELOCITY_RADIANS_PER_SECOND,
                     Swerve.get().getEstimatedPose().getRotation());
 
@@ -106,7 +108,8 @@ public class SwerveCommand extends Command {
 
             ChassisSpeeds.discretize(speeds, periodSeconds);
 
-            SwerveModuleState[] targetModuleStates = Constants.SWERVE_KINEMATICS.toSwerveModuleStates(speeds);
+            SwerveModuleState[] targetModuleStates = Constants.SWERVE_KINEMATICS
+                    .toSwerveModuleStates(speeds);
 
             desaturateWheelSpeeds(targetModuleStates, Constants.MAX_LINEAR_SPEED_METERS_PER_SECOND);
 
@@ -126,10 +129,14 @@ public class SwerveCommand extends Command {
             Swerve.get()
                     .setModuleStates(
                             new SwerveModuleState[] {
-                                    new SwerveModuleState(0, Rotation2d.fromDegrees(45)),
-                                    new SwerveModuleState(0, Rotation2d.fromDegrees(-45)),
-                                    new SwerveModuleState(0, Rotation2d.fromDegrees(-45)),
-                                    new SwerveModuleState(0, Rotation2d.fromDegrees(45))
+                                    new SwerveModuleState(0,
+                                            Rotation2d.fromDegrees(45)),
+                                    new SwerveModuleState(0,
+                                            Rotation2d.fromDegrees(-45)),
+                                    new SwerveModuleState(0,
+                                            Rotation2d.fromDegrees(-45)),
+                                    new SwerveModuleState(0,
+                                            Rotation2d.fromDegrees(45))
                             });
         }
     }
