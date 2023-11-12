@@ -29,11 +29,8 @@ public class RobotContainer {
   enum ScalingAlgorithm {
     Linear((x) -> x),
     Squared((x) -> Math.signum(x) * x * x),
-
     Cubed((x) -> x * x * x),
-
     Cosine((x) -> (-Math.signum(x) * Math.cos(Math.PI * 0.5 * x)) + (1 * Math.signum(x))),
-
     CubedSquareRoot((x) -> Math.signum(x) * Math.sqrt(Math.abs(x * x * x)));
 
     public final Function<Double, Double> algorithm;

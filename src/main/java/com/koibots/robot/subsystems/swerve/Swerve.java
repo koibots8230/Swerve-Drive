@@ -31,8 +31,7 @@ public class Swerve extends SubsystemBase {
                         new SwerveModule(new SwerveModuleIOSim(), 3)
                 };
 
-                gyro = new GyroIO() {
-                };
+                gyro = new GyroIOSim();
 
                 odometry = new SwerveDrivePoseEstimator(
                         Constants.SWERVE_KINEMATICS,
