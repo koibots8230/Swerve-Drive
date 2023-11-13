@@ -3,14 +3,17 @@ package com.koibots.robot;
 import static com.koibots.robot.subsystems.Subsystems.Swerve;
 
 import com.koibots.robot.command.teleop.SwerveCommand;
+import com.koibots.robot.subsystems.controller.ControllerIO;
+import com.koibots.robot.subsystems.controller.ControllerIOPS5;
+
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj2.command.Command;
-import edu.wpi.first.wpilibj2.command.button.CommandJoystick;
-import edu.wpi.first.wpilibj2.command.button.CommandPS4Controller;
-import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.JoystickButton;
+
 import java.util.function.Function;
+import java.util.function.Supplier;
+
 import org.littletonrobotics.junction.networktables.LoggedDashboardChooser;
 
 /*
@@ -20,30 +23,14 @@ import org.littletonrobotics.junction.networktables.LoggedDashboardChooser;
  * (including subsystems, commands, and button mappings) should be declared here.
  */
 public class RobotContainer {
-  // Controllers
-  private final CommandXboxController xbox = new CommandXboxController(0);
-  private final CommandPS4Controller ps5 = new CommandPS4Controller(0);
-  private final CommandJoystick joystick = new CommandJoystick(0);
-  // private final CommandGenericHID drone = new CommandGenericHID(0);
-
-  enum Controller {
-    Xbox,
-    PS5,
-    Joystick,
-    DroneController
-  }
-
-  LoggedDashboardChooser<Controller> controllerChooser;
+  LoggedDashboardChooser<Supplier<ControllerIO>> controllerChooser;
 
   // Graph of algorithms here: https://www.desmos.com/calculator/w738aldioj
   enum ScalingAlgorithm {
     Linear((x) -> x),
     Squared((x) -> Math.signum(x) * x * x),
-
     Cubed((x) -> x * x * x),
-
     Cosine((x) -> (-Math.signum(x) * Math.cos(Math.PI * 0.5 * x)) + (1 * Math.signum(x))),
-
     CubedSquareRoot((x) -> Math.signum(x) * Math.sqrt(Math.abs(x * x * x)));
 
     public final Function<Double, Double> algorithm;
@@ -67,10 +54,7 @@ public class RobotContainer {
       case SIM:
         controllerChooser = new LoggedDashboardChooser<>("Controller Chooser");
 
-        controllerChooser.addDefaultOption("Xbox Controller", Controller.Xbox);
-        controllerChooser.addOption("PS5 Controller", Controller.PS5);
-        controllerChooser.addOption("Flight Joystick", Controller.Joystick);
-        controllerChooser.addOption("Drone Controller", Controller.DroneController);
+        controllerChooser.addDefaultOption("PS5 Controller", ControllerIOPS5::new);
 
         scalingChooser.addDefaultOption("Linear", ScalingAlgorithm.Linear);
         scalingChooser.addOption("Squared", ScalingAlgorithm.Squared);
@@ -92,43 +76,15 @@ public class RobotContainer {
    * {@link JoystickButton}.
    */
   public void configureButtonBindings() {
-    SwerveCommand swerveCommand = switch (controllerChooser.get()) {
-      case Xbox -> {
-        System.out.println("Xbox Controller Initialized");
-        yield new SwerveCommand(
-            () -> -xbox.getLeftY(),
-            () -> -xbox.getLeftX(),
-            xbox::getRightX,
-            () -> xbox.getHID().getPOV(),
-            () -> xbox.getHID().getAButton());
-      }
-      case PS5 -> {
-        System.out.println("PS5 Controller Initialized");
-        yield new SwerveCommand(
-            () -> -ps5.getLeftY(),
-            () -> -ps5.getLeftX(),
-            () -> -ps5.getHID().getRawAxis(2),
-            () -> ps5.getHID().getPOV(),
-            () -> ps5.getHID().getCrossButton());
-      }
-      case Joystick -> {
-        System.out.println("PS5 Controller Initialized");
-        yield new SwerveCommand(
-            joystick::getY,
-            joystick::getX,
-            joystick::getTwist,
-            () -> joystick.getHID().getPOV(),
-            () -> joystick.getHID().getTrigger());
-      }
-      case DroneController -> {
-        System.out.println("Drone Controller Initialized");
-        yield new SwerveCommand(null, null, null, null, null);
-      }
-      default -> null;
-    };
+    ControllerIO controller = controllerChooser.get().get();
 
-    swerveCommand.setScalingAlgorithm(scalingChooser.get().algorithm);
-    Swerve.get().setDefaultCommand(swerveCommand);
+    Swerve.get().setDefaultCommand(new SwerveCommand(
+        controller::xTranslation,
+        controller::yTranslation,
+        controller::angularVelocity,
+        controller::anglePosition,
+        controller::cross,
+        scalingChooser.get().algorithm));
   }
 
   /**
