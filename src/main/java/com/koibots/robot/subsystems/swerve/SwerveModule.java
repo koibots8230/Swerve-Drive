@@ -71,12 +71,6 @@ public class SwerveModule {
     io.updateInputs(inputs);
     Logger.processInputs("Drive/Module" + Integer.toString(index), inputs);
 
-    // On first cycle, reset relative turn encoder
-    // Wait until absolute angle is nonzero in case it wasn't initialized yet
-    if (turnRelativeOffset == null && inputs.turnAbsolutePosition.getRadians() != 0.0) {
-      turnRelativeOffset = inputs.turnAbsolutePosition.minus(inputs.turnPosition);
-    }
-
     // Run closed loop turn control
     if (angleSetpoint != null) {
       io.setTurnVoltage(
@@ -135,7 +129,7 @@ public class SwerveModule {
     if (turnRelativeOffset == null) {
       return new Rotation2d();
     } else {
-      return inputs.turnPosition.plus(turnRelativeOffset);
+      return inputs.turnAbsolutePosition.plus(turnRelativeOffset);
     }
   }
 
