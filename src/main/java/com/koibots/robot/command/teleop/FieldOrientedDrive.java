@@ -4,6 +4,7 @@ import com.koibots.robot.Constants;
 
 import static com.koibots.robot.subsystems.Subsystems.Swerve;
 import static edu.wpi.first.math.kinematics.SwerveDriveKinematics.desaturateWheelSpeeds;
+import static edu.wpi.first.units.Units.MetersPerSecond;
 
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.controller.ProfiledPIDController;
@@ -93,9 +94,9 @@ public class FieldOrientedDrive extends Command {
 
             ChassisSpeeds speeds = ChassisSpeeds.fromFieldRelativeSpeeds(
                     linearMagnitude * linearDirection.getCos()
-                            * Constants.MAX_LINEAR_SPEED_METERS_PER_SECOND,
+                            * Constants.MAX_LINEAR_SPEED.in(MetersPerSecond),
                     linearMagnitude * linearDirection.getSin()
-                            * Constants.MAX_LINEAR_SPEED_METERS_PER_SECOND,
+                            * Constants.MAX_LINEAR_SPEED.in(MetersPerSecond),
                     angularVelocity * Constants.MAX_ANGULAR_VELOCITY_RADIANS_PER_SECOND,
                     Swerve.get().getEstimatedPose().getRotation());
 
@@ -106,7 +107,7 @@ public class FieldOrientedDrive extends Command {
             SwerveModuleState[] targetModuleStates = Constants.SWERVE_KINEMATICS
                     .toSwerveModuleStates(speeds);
 
-            desaturateWheelSpeeds(targetModuleStates, Constants.MAX_LINEAR_SPEED_METERS_PER_SECOND);
+            desaturateWheelSpeeds(targetModuleStates, Constants.MAX_LINEAR_SPEED.in(MetersPerSecond));
 
             if (speeds.vxMetersPerSecond == 0.0
                     && speeds.vyMetersPerSecond == 0.0
