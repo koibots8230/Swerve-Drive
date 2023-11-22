@@ -1,9 +1,8 @@
 package com.koibots.robot.subsystems.swerve;
 
-import com.revrobotics.CANSparkMax;
-import com.revrobotics.CANSparkMaxLowLevel;
-import com.revrobotics.RelativeEncoder;
-import com.revrobotics.SparkMaxRelativeEncoder;
+import com.revrobotics.*;
+import edu.wpi.first.math.MathUtil;
+import edu.wpi.first.math.controller.SimpleMotorFeedforward;
 import edu.wpi.first.math.geometry.Rotation2d;
 
 public class SwerveModuleIOSparkMax implements SwerveModuleIO {
@@ -11,6 +10,9 @@ public class SwerveModuleIOSparkMax implements SwerveModuleIO {
     CANSparkMax turnMotor;
     RelativeEncoder driveEncoder;
     RelativeEncoder turnEncoder;
+    SparkMaxPIDController turnController;
+
+    CANSparkMaxLowLevel sparkMaxLowLevel;
 
     public SwerveModuleIOSparkMax(int driveID, int turnID) {
         driveMotor = new CANSparkMax(driveID, CANSparkMaxLowLevel.MotorType.kBrushless);
@@ -18,7 +20,9 @@ public class SwerveModuleIOSparkMax implements SwerveModuleIO {
 
         driveEncoder = driveMotor.getEncoder();
         turnEncoder = turnMotor.getEncoder(SparkMaxRelativeEncoder.Type.kQuadrature, 8192);
-        // TODO: Check through bore actual values
+        // TODO: Double check through bore actual values
+
+        SimpleMotorFeedforward x = new SimpleMotorFeedforward(0, 0, 0);
     }
 
     /** Updates the set of loggable inputs. */
@@ -29,7 +33,7 @@ public class SwerveModuleIOSparkMax implements SwerveModuleIO {
         inputs.driveAppliedVolts = driveMotor.getBusVoltage();
         inputs.driveCurrentAmps = driveMotor.getOutputCurrent();
 
-        inputs.turnAbsolutePosition = Rotation2d.fromRadians(turnEncoder.getPosition());
+        inputs.modulePosition = Rotation2d.fromRadians(turnEncoder.getPosition());
         inputs.turnVelocityRadPerSec = turnEncoder.getVelocity();
         inputs.turnAppliedVolts = turnMotor.getBusVoltage();
         inputs.turnCurrentAmps = turnMotor.getOutputCurrent();
@@ -38,24 +42,24 @@ public class SwerveModuleIOSparkMax implements SwerveModuleIO {
     /** Run the drive motor at the specified voltage. */
     @Override
     public void setDriveVoltage(double volts) {
-        driveMotor.setVoltage(volts);
+        driveMotor.setVoltage(MathUtil.clamp(volts, -11.5, 11.5));
     }
 
-    /** Run the turn motor at the specified voltage. */
+    /** Turn the module to an angle */
     @Override
-    public void setTurnVoltage(double volts) {
-        turnMotor.setVoltage(volts);
+    public void setModuleAngle(double radians) {
+
     }
 
     /** Enable or disable brake mode on the drive motor. */
     @Override
-    public void setDriveBrakeMode(boolean enable) {
-        driveMotor.setIdleMode(CANSparkMax.IdleMode.kBrake);
+    public void setDriveIdleMode(CANSparkMax.IdleMode mode) {
+        driveMotor.setIdleMode(mode);
     }
 
     /** Enable or disable brake mode on the turn motor. */
     @Override
-    public void setTurnBrakeMode(boolean enable) {
-        turnMotor.setIdleMode(CANSparkMax.IdleMode.kBrake);
+    public void setTurnIdleMode(CANSparkMax.IdleMode mode) {
+        turnMotor.setIdleMode(mode);
     }
 }

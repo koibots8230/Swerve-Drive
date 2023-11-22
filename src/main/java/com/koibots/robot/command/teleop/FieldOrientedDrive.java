@@ -5,6 +5,7 @@ import com.koibots.robot.Constants;
 import static com.koibots.robot.subsystems.Subsystems.Swerve;
 import static edu.wpi.first.math.kinematics.SwerveDriveKinematics.desaturateWheelSpeeds;
 import static edu.wpi.first.units.Units.MetersPerSecond;
+import static edu.wpi.first.units.Units.RadiansPerSecond;
 
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.controller.ProfiledPIDController;
@@ -47,7 +48,7 @@ public class FieldOrientedDrive extends Command {
                 0.2,
                 0,
                 0,
-                new Constraints(Constants.MAX_ANGULAR_VELOCITY_RADIANS_PER_SECOND, 4 * Math.PI),
+                new Constraints(Constants.MAX_ANGULAR_VELOCITY.in(RadiansPerSecond), 4 * Math.PI),
                 0.02);
 
         angleAlignmentController.enableContinuousInput(0, 2 * Math.PI);
@@ -97,7 +98,7 @@ public class FieldOrientedDrive extends Command {
                             * Constants.MAX_LINEAR_SPEED.in(MetersPerSecond),
                     linearMagnitude * linearDirection.getSin()
                             * Constants.MAX_LINEAR_SPEED.in(MetersPerSecond),
-                    angularVelocity * Constants.MAX_ANGULAR_VELOCITY_RADIANS_PER_SECOND,
+                    angularVelocity * Constants.MAX_ANGULAR_VELOCITY.in(RadiansPerSecond),
                     Swerve.get().getEstimatedPose().getRotation());
 
             double periodSeconds = Logger.getRealTimestamp() - previousTimestamp;

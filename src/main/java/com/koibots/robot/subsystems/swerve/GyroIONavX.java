@@ -1,5 +1,7 @@
 package com.koibots.robot.subsystems.swerve;
 
+import static edu.wpi.first.units.Units.RadiansPerSecond;
+
 import com.kauailabs.navx.frc.AHRS;
 
 import edu.wpi.first.math.geometry.Rotation2d;
@@ -18,8 +20,13 @@ public class GyroIONavX implements GyroIO {
     public void updateInputs(GyroIOInputs inputs) {
         Rotation2d previousYaw = inputs.yawPosition;
 
-        inputs.yawPosition = Rotation2d.fromDegrees(gyro.getYaw() * -1);
+        inputs.yawPosition = Rotation2d.fromDegrees(-gyro.getYaw());
 
-        inputs.yawVelocityRadPerSec = inputs.yawPosition.minus(previousYaw).getRadians() / 0.02;
+        inputs.yawVelocityRadPerSec = RadiansPerSecond.of(inputs.yawPosition.minus(previousYaw).getRadians() / 0.02);
+    }
+
+    @Override
+    public void zeroYaw() {
+        gyro.zeroYaw();
     }
 }

@@ -25,8 +25,8 @@ public class SwerveModuleIOSim implements SwerveModuleIO {
         inputs.driveAppliedVolts = driveAppliedVolts;
         inputs.driveCurrentAmps = Math.abs(driveSim.getCurrentDrawAmps());
 
-        inputs.turnAbsolutePosition =
-                new Rotation2d(turnSim.getAngularPositionRad()).plus(turnAbsoluteInitPosition);
+        inputs.modulePosition =
+                new Rotation2d(turnSim.getAngularPositionRad());
         inputs.turnVelocityRadPerSec = turnSim.getAngularVelocityRadPerSec();
         inputs.turnAppliedVolts = turnAppliedVolts;
         inputs.turnCurrentAmps = Math.abs(turnSim.getCurrentDrawAmps());
@@ -34,13 +34,12 @@ public class SwerveModuleIOSim implements SwerveModuleIO {
 
     @Override
     public void setDriveVoltage(double volts) {
-        driveAppliedVolts = MathUtil.clamp(volts, -12.0, 12.0);
+        driveAppliedVolts = MathUtil.clamp(volts, -11.5, 11.5);
         driveSim.setInputVoltage(driveAppliedVolts);
     }
 
     @Override
-    public void setTurnVoltage(double volts) {
-        turnAppliedVolts = MathUtil.clamp(volts, -12.0, 12.0);
-        turnSim.setInputVoltage(turnAppliedVolts);
+    public void setModuleAngle(double radians) {
+
     }
 }

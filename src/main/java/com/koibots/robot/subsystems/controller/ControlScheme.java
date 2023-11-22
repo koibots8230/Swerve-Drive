@@ -1,6 +1,6 @@
 package com.koibots.robot.subsystems.controller;
 
-public abstract class ControllerIO {
+public abstract class ControlScheme {
     public abstract double xTranslation();
 
     public abstract double yTranslation();
