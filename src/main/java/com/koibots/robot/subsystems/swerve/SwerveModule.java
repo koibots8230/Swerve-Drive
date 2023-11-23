@@ -3,7 +3,7 @@
 
 package com.koibots.robot.subsystems.swerve;
 
-import com.koibots.robot.Constants.PhysicalConstants;
+import com.koibots.robot.Constants.DrivetrainConstants;
 import com.koibots.robot.Robot;
 import com.revrobotics.CANSparkMax;
 import edu.wpi.first.math.controller.PIDController;
@@ -84,12 +84,12 @@ public class SwerveModule {
 
     /** Returns the current drive position of the module in meters. */
     public double getPositionMeters() {
-        return inputs.drivePositionRad * PhysicalConstants.WHEEL_RADIUS;
+        return inputs.drivePositionRad * DrivetrainConstants.WHEEL_RADIUS;
     }
 
     /** Returns the current drive velocity of the module in meters per second. */
     public double getVelocityMetersPerSec() {
-        return inputs.driveVelocityRadPerSec * PhysicalConstants.WHEEL_RADIUS;
+        return inputs.driveVelocityRadPerSec * DrivetrainConstants.WHEEL_RADIUS;
     }
 
     /** Returns the module position (turn angle and drive position). */

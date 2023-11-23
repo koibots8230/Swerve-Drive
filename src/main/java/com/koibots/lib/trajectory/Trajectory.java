@@ -2,19 +2,13 @@ package com.koibots.lib.trajectory;
 
 import com.google.gson.Gson;
 import edu.wpi.first.math.geometry.Pose2d;
-import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.Filesystem;
 
 import java.io.BufferedReader;
-import java.io.File;
 import java.io.FileReader;
-import java.io.Reader;
-import java.lang.reflect.Array;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Map;
-import java.util.Vector;
 
 public class Trajectory {
     List<TrajectoryState> states;

@@ -1,13 +1,11 @@
 package com.koibots.robot.subsystems.swerve;
 
-import com.koibots.robot.Constants;
-import com.koibots.robot.Constants.HardwareConstants;
+import com.koibots.robot.Constants.DrivetrainConstants;
 import com.koibots.robot.Robot;
 
 import edu.wpi.first.math.estimator.SwerveDrivePoseEstimator;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
-import edu.wpi.first.math.kinematics.SwerveDriveWheelPositions;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.wpilibj.DriverStation;
@@ -25,17 +23,17 @@ public class Swerve extends SubsystemBase {
             case REAL:
                 swerveModules = new SwerveModule[] {
                         new SwerveModule(new SwerveModuleIOSparkMax(
-                                HardwareConstants.FRONT_LEFT_DRIVE_ID,
-                                HardwareConstants.FRONT_LEFT_TURN_ID), "FrontLeft"),
+                                DrivetrainConstants.FRONT_LEFT_DRIVE_ID,
+                                DrivetrainConstants.FRONT_LEFT_TURN_ID), "FrontLeft"),
                         new SwerveModule(new SwerveModuleIOSparkMax(
-                                HardwareConstants.FRONT_RIGHT_DRIVE_ID,
-                                HardwareConstants.FRONT_RIGHT_TURN_ID), "FrontRight"),
+                                DrivetrainConstants.FRONT_RIGHT_DRIVE_ID,
+                                DrivetrainConstants.FRONT_RIGHT_TURN_ID), "FrontRight"),
                         new SwerveModule(new SwerveModuleIOSparkMax(
-                                HardwareConstants.BACK_LEFT_DRIVE_ID,
-                                HardwareConstants.BACK_LEFT_TURN_ID), "BackLeft"),
+                                DrivetrainConstants.BACK_LEFT_DRIVE_ID,
+                                DrivetrainConstants.BACK_LEFT_TURN_ID), "BackLeft"),
                         new SwerveModule(new SwerveModuleIOSparkMax(
-                                HardwareConstants.BACK_RIGHT_DRIVE_ID,
-                                HardwareConstants.BACK_RIGHT_TURN_ID), "BackRight"),
+                                DrivetrainConstants.BACK_RIGHT_DRIVE_ID,
+                                DrivetrainConstants.BACK_RIGHT_TURN_ID), "BackRight"),
                 };
 
                 gyro = new GyroIONavX();
@@ -54,8 +52,10 @@ public class Swerve extends SubsystemBase {
                 break;
         }
 
+        gyro.zeroYaw();
+
         odometry = new SwerveDrivePoseEstimator(
-                Constants.SWERVE_KINEMATICS,
+                DrivetrainConstants.SWERVE_KINEMATICS,
                 new Rotation2d(),
                 getModulePositions(),
                 new Pose2d()

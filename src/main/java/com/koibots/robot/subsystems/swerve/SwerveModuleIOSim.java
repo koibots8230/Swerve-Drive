@@ -10,8 +10,6 @@ public class SwerveModuleIOSim implements SwerveModuleIO {
 
     private final DCMotorSim driveSim = new DCMotorSim(DCMotor.getNEO(1), 6.75, 0.025);
     private final DCMotorSim turnSim = new DCMotorSim(DCMotor.getNEO(1), 150.0 / 7.0, 0.004);
-
-    private final Rotation2d turnAbsoluteInitPosition = new Rotation2d(Math.random() * 2.0 * Math.PI);
     private double driveAppliedVolts = 0.0;
     private double turnAppliedVolts = 0.0;
 

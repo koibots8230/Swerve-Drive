@@ -31,7 +31,7 @@ public class RobotContainer {
 
         public final Function<Double, Double> algorithm;
 
-        private ScalingAlgorithm(Function<Double, Double> algorithm) {
+         ScalingAlgorithm(Function<Double, Double> algorithm) {
             this.algorithm = algorithm;
         }
     }

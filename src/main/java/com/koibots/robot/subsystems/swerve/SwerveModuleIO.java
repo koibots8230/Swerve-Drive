@@ -18,30 +18,30 @@ import edu.wpi.first.math.geometry.Rotation2d;
 import org.littletonrobotics.junction.AutoLog;
 
 public interface SwerveModuleIO {
-  @AutoLog
-  public static class SwerveModuleInputs {
-    public double drivePositionRad = 0.0;
-    public double driveVelocityRadPerSec = 0.0;
-    public double driveAppliedVolts = 0.0;
-    public double driveCurrentAmps = 0.0;
+    @AutoLog
+    class SwerveModuleInputs {
+        public double drivePositionRad = 0.0;
+        public double driveVelocityRadPerSec = 0.0;
+        public double driveAppliedVolts = 0.0;
+        public double driveCurrentAmps = 0.0;
 
-    public Rotation2d modulePosition = new Rotation2d();
-    public double turnVelocityRadPerSec = 0.0;
-    public double turnAppliedVolts = 0.0;
-    public double turnCurrentAmps = 0.0;
-  }
+        public Rotation2d modulePosition = new Rotation2d();
+        public double turnVelocityRadPerSec = 0.0;
+        public double turnAppliedVolts = 0.0;
+        public double turnCurrentAmps = 0.0;
+    }
 
-  /** Updates the set of loggable inputs. */
-  public void updateInputs(SwerveModuleInputs inputs);
+    /** Updates the set of loggable inputs. */
+    void updateInputs(SwerveModuleInputs inputs);
 
-  /** Run the drive motor at the specified voltage. */
-  public void setDriveVoltage(double volts);
-  public void setModuleAngle(double radians);
-  public void stopTurnMotor();
+    /** Run the drive motor at the specified voltage. */
+    void setDriveVoltage(double volts);
+    void setModuleAngle(double radians);
+    void stopTurnMotor();
 
-  /** Enable or disable brake mode on the drive motor. */
-  public default void setDriveIdleMode(CANSparkMax.IdleMode mode) {}
+    /** Enable or disable brake mode on the drive motor. */
+    default void setDriveIdleMode(CANSparkMax.IdleMode mode) {}
 
-  /** Enable or disable brake mode on the turn motor. */
-  public default void setTurnIdleMode(CANSparkMax.IdleMode mode) {}
+    /** Enable or disable brake mode on the turn motor. */
+    default void setTurnIdleMode(CANSparkMax.IdleMode mode) {}
 }

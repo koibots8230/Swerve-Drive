@@ -12,7 +12,6 @@ public class SwerveModuleIOSparkMax implements SwerveModuleIO {
     RelativeEncoder turnEncoder;
     SparkMaxPIDController turnController;
 
-    CANSparkMaxLowLevel sparkMaxLowLevel;
 
     public SwerveModuleIOSparkMax(int driveID, int turnID) {
         driveMotor = new CANSparkMax(driveID, CANSparkMaxLowLevel.MotorType.kBrushless);

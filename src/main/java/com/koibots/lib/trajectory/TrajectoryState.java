@@ -5,7 +5,6 @@ import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.interpolation.Interpolatable;
-import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import lombok.Builder;
 
 @Builder
@@ -23,10 +22,6 @@ public class TrajectoryState implements Interpolatable<TrajectoryState> {
         return new Pose2d(x, y, Rotation2d.fromRadians(heading));
     }
 
-    public ChassisSpeeds getChassisSpeeds() {
-        return new ChassisSpeeds(velocityX, velocityY, angularVelocity);
-    }
-
     @Override
     public TrajectoryState interpolate(TrajectoryState endValue, double t) {
         double scale = (timestamp - t) / (endValue.timestamp - t);
@@ -41,12 +36,6 @@ public class TrajectoryState implements Interpolatable<TrajectoryState> {
                 .angularVelocity(
                         MathUtil.interpolate(this.angularVelocity, endValue.angularVelocity, scale))
                 .build();
-    }
-
-    public double[] asArray() {
-        return new double[] {
-                timestamp, x, y, heading, velocityX, velocityY, angularVelocity,
-        };
     }
 
     public TrajectoryState flipped() {

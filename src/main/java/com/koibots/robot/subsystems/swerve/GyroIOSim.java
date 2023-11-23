@@ -1,6 +1,6 @@
 package com.koibots.robot.subsystems.swerve;
 
-import com.koibots.robot.Constants;
+import com.koibots.robot.Constants.DrivetrainConstants;
 
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
@@ -22,7 +22,7 @@ public class GyroIOSim implements GyroIO {
     public void updateInputs(GyroIOInputs inputs) {
         field.setRobotPose(Swerve.get().getEstimatedPose());
 
-        ChassisSpeeds speeds = Constants.SWERVE_KINEMATICS.toChassisSpeeds(Swerve.get().getModuleStates());
+        ChassisSpeeds speeds = DrivetrainConstants.SWERVE_KINEMATICS.toChassisSpeeds(Swerve.get().getModuleStates());
         inputs.yawPosition = inputs.yawPosition
                 .plus(Rotation2d.fromRadians(speeds.omegaRadiansPerSecond * 0.02));
         inputs.yawVelocityRadPerSec = RadiansPerSecond.of(speeds.omegaRadiansPerSecond);

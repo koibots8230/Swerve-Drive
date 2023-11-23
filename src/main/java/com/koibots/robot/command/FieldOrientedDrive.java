@@ -1,10 +1,9 @@
 package com.koibots.robot.command;
 
 import com.koibots.robot.Constants;
+import com.koibots.robot.Constants.DrivetrainConstants;
 
 import static com.koibots.robot.subsystems.Subsystems.Swerve;
-import static edu.wpi.first.units.Units.MetersPerSecond;
-import static edu.wpi.first.units.Units.RadiansPerSecond;
 
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.controller.ProfiledPIDController;
@@ -26,7 +25,6 @@ public class FieldOrientedDrive extends Command {
     DoubleSupplier angleSupplier;
     BooleanSupplier crossSupplier;
     Function<Double, Double> scalingAlgorithm;
-    double previousTimestamp;
 
     ProfiledPIDController angleAlignmentController;
 
@@ -48,17 +46,12 @@ public class FieldOrientedDrive extends Command {
                 0.2,
                 0,
                 0,
-                new Constraints(Constants.MAX_ANGULAR_VELOCITY.in(RadiansPerSecond), 4 * Math.PI),
+                new Constraints(DrivetrainConstants.MAX_ANGULAR_VELOCITY, 4 * Math.PI),
                 0.02);
 
         angleAlignmentController.enableContinuousInput(0, 2 * Math.PI);
 
         addRequirements(Swerve.get());
-    }
-
-    @Override
-    public void initialize() {
-        previousTimestamp = Logger.getRealTimestamp();
     }
 
     @Override
@@ -95,21 +88,24 @@ public class FieldOrientedDrive extends Command {
 
             ChassisSpeeds speeds = ChassisSpeeds.fromFieldRelativeSpeeds(
                     linearMagnitude * linearDirection.getCos()
-                            * Constants.MAX_LINEAR_SPEED.in(MetersPerSecond),
+                            * DrivetrainConstants.MAX_TRANSLATION_SPEED,//.in(MetersPerSecond),
                     linearMagnitude * linearDirection.getSin()
-                            * Constants.MAX_LINEAR_SPEED.in(MetersPerSecond),
-                    angularVelocity * Constants.MAX_ANGULAR_VELOCITY.in(RadiansPerSecond),
+                            * DrivetrainConstants.MAX_TRANSLATION_SPEED,//.in(MetersPerSecond),
+                    angularVelocity * DrivetrainConstants.MAX_ANGULAR_VELOCITY,//.in(RadiansPerSecond),
                     Swerve.get().getEstimatedPose().getRotation());
 
-            double periodSeconds = Logger.getRealTimestamp() - previousTimestamp;
+            speeds = ChassisSpeeds.discretize(speeds, Constants.PERIOD);
 
-            ChassisSpeeds.discretize(speeds, periodSeconds);
-
-            SwerveModuleState[] targetModuleStates = Constants.SWERVE_KINEMATICS
+            SwerveModuleState[] targetModuleStates = DrivetrainConstants.SWERVE_KINEMATICS
                     .toSwerveModuleStates(speeds);
 
             SwerveDriveKinematics.desaturateWheelSpeeds(
-                    targetModuleStates, Constants.MAX_LINEAR_SPEED.in(MetersPerSecond));
+                    targetModuleStates,
+                    speeds,
+                    Constants.DrivetrainConstants.MAX_MODULE_LINEAR_SPEED,
+                    Constants.DrivetrainConstants.MAX_TRANSLATION_SPEED,
+                    Constants.DrivetrainConstants.MAX_ANGULAR_VELOCITY
+            );
 
             if (speeds.vxMetersPerSecond == 0.0
                     && speeds.vyMetersPerSecond == 0.0
@@ -121,7 +117,6 @@ public class FieldOrientedDrive extends Command {
                 targetModuleStates[3] = new SwerveModuleState(0, currentStates[3].angle);
             }
 
-            previousTimestamp = Logger.getRealTimestamp();
             Swerve.get().setModuleStates(targetModuleStates);
         } else { // Set Cross
             Swerve.get().setModuleStates(
