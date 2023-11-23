@@ -4,17 +4,25 @@ import com.koibots.robot.Constants;
 
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
+import edu.wpi.first.wpilibj.smartdashboard.Field2d;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 
 import static com.koibots.robot.subsystems.Subsystems.Swerve;
 import static edu.wpi.first.units.Units.RadiansPerSecond;
 
 public class GyroIOSim implements GyroIO {
     boolean zero = false;
+    Field2d field = new Field2d();
+
+    public GyroIOSim() {
+        SmartDashboard.putData("Field", field);
+    }
 
     @Override
     public void updateInputs(GyroIOInputs inputs) {
-        ChassisSpeeds speeds = Constants.SWERVE_KINEMATICS.toChassisSpeeds(Swerve.get().getModuleStates());
+        field.setRobotPose(Swerve.get().getEstimatedPose());
 
+        ChassisSpeeds speeds = Constants.SWERVE_KINEMATICS.toChassisSpeeds(Swerve.get().getModuleStates());
         inputs.yawPosition = inputs.yawPosition
                 .plus(Rotation2d.fromRadians(speeds.omegaRadiansPerSecond * 0.02));
         inputs.yawVelocityRadPerSec = RadiansPerSecond.of(speeds.omegaRadiansPerSecond);

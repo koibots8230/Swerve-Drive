@@ -1,41 +1,58 @@
 package com.koibots.lib.trajectory;
 
+import com.google.gson.Gson;
+import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
+import edu.wpi.first.wpilibj.DriverStation;
+import edu.wpi.first.wpilibj.Filesystem;
 
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileReader;
+import java.io.Reader;
+import java.lang.reflect.Array;
+import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
+import java.util.Vector;
 
 public class Trajectory {
     List<TrajectoryState> states;
+    int step = 0;
 
     /**
      * Loads a Choreo Trajectory
      * @param name the name of the file, no file extension needed.
      */
     public Trajectory(String name) {
-
-
-        for (var point : points) {
-            states.add(
-                    new TrajectoryState(
-                            point[0],
-                            point[1],
-                            point[2],
-                            point[3],
-                            point[4],
-                            point[5],
-                            point[6]
-                    )
-            )
+        Gson gson = new Gson();
+        try (FileReader file = new FileReader(Filesystem.getDeployDirectory() + "choreo/" + name);) {
+            states = Arrays.asList(gson.fromJson(new BufferedReader(file), TrajectoryState[].class));
+        } catch (Exception e) {
+            DriverStation.reportError("Failed to load Choreo Trajectory", e.getStackTrace());
         }
     }
 
+    public Pose2d getInitialPose() {
+        return states.get(0).getPose();
+    }
+
     /**
-     *
+     * Returns the trajectory state at the given time.
      * @param time the time in the trajectory
      * @return The speeds
      */
+    public TrajectoryState sample(double time) {
+        TrajectoryState state = states.get(step).interpolate(states.get(step + 1), time);
+        step++;
+        return state;
+    }
 
-    public ChassisSpeeds step(double time) {
+    public void flipAlliance() {
+        states.replaceAll(TrajectoryState::flipped);
+    }
 
+    public boolean completed() {
+        return step >= states.size();
     }
 }

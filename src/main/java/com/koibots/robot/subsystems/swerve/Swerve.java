@@ -7,6 +7,7 @@ import com.koibots.robot.Robot;
 import edu.wpi.first.math.estimator.SwerveDrivePoseEstimator;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.kinematics.SwerveDriveWheelPositions;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.wpilibj.DriverStation;
@@ -116,5 +117,18 @@ public class Swerve extends SubsystemBase {
 
     public Pose2d getEstimatedPose() {
         return odometry.getEstimatedPosition();
+    }
+
+    public void resetOdometry(Pose2d pose) {
+        odometry.resetPosition(gyroInputs.yawPosition, getModulePositions(), pose);
+    }
+
+    public void stop() {
+        setModuleStates( new SwerveModuleState[]{
+                new SwerveModuleState(0, getModuleStates()[0].angle),
+                new SwerveModuleState(0, getModuleStates()[1].angle),
+                new SwerveModuleState(0, getModuleStates()[2].angle),
+                new SwerveModuleState(0, getModuleStates()[3].angle),
+        });
     }
 }

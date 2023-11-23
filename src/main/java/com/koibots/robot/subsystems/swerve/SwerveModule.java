@@ -67,7 +67,7 @@ public class SwerveModule {
 
     /** Disables all outputs to motors. */
     public void stop() {
-        io.setTurnVoltage(0.0);
+        io.stopTurnMotor();
         io.setDriveVoltage(0.0);
     }
 

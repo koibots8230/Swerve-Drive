@@ -42,4 +42,9 @@ public class SwerveModuleIOSim implements SwerveModuleIO {
     public void setModuleAngle(double radians) {
 
     }
+
+    @Override
+    public void stopTurnMotor() {
+        turnAppliedVolts = 0;
+    }
 }

@@ -51,6 +51,11 @@ public class SwerveModuleIOSparkMax implements SwerveModuleIO {
 
     }
 
+    @Override
+    public void stopTurnMotor() {
+        turnMotor.setVoltage(0);
+    }
+
     /** Enable or disable brake mode on the drive motor. */
     @Override
     public void setDriveIdleMode(CANSparkMax.IdleMode mode) {

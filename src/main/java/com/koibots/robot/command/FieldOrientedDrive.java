@@ -1,9 +1,8 @@
-package com.koibots.robot.command.teleop;
+package com.koibots.robot.command;
 
 import com.koibots.robot.Constants;
 
 import static com.koibots.robot.subsystems.Subsystems.Swerve;
-import static edu.wpi.first.math.kinematics.SwerveDriveKinematics.desaturateWheelSpeeds;
 import static edu.wpi.first.units.Units.MetersPerSecond;
 import static edu.wpi.first.units.Units.RadiansPerSecond;
 
@@ -11,6 +10,7 @@ import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.controller.ProfiledPIDController;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
+import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.math.trajectory.TrapezoidProfile.Constraints;
 import edu.wpi.first.wpilibj2.command.Command;
@@ -108,7 +108,8 @@ public class FieldOrientedDrive extends Command {
             SwerveModuleState[] targetModuleStates = Constants.SWERVE_KINEMATICS
                     .toSwerveModuleStates(speeds);
 
-            desaturateWheelSpeeds(targetModuleStates, Constants.MAX_LINEAR_SPEED.in(MetersPerSecond));
+            SwerveDriveKinematics.desaturateWheelSpeeds(
+                    targetModuleStates, Constants.MAX_LINEAR_SPEED.in(MetersPerSecond));
 
             if (speeds.vxMetersPerSecond == 0.0
                     && speeds.vyMetersPerSecond == 0.0

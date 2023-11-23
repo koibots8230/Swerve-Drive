@@ -6,20 +6,20 @@ package com.koibots.robot;
 
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.PowerDistribution;
-import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import lombok.Getter;
+import me.nabdev.oxconfig.OxConfig;
 import org.littletonrobotics.junction.LoggedRobot;
 import org.littletonrobotics.junction.Logger;
 import org.littletonrobotics.junction.inputs.LoggedPowerDistribution;
+import org.littletonrobotics.junction.networktables.LoggedDashboardBoolean;
 import org.littletonrobotics.junction.networktables.NT4Publisher;
-
-import static com.koibots.robot.subsystems.Subsystems.Swerve;
 
 public class Robot extends LoggedRobot {
     private Command autonomousCommand;
     private RobotContainer robotContainer;
+    LoggedDashboardBoolean boolTest;
 
     public enum Mode {
         REAL,
@@ -35,6 +35,13 @@ public class Robot extends LoggedRobot {
      */
     @Override
     public void robotInit() {
+        //OxConfig.setModeList("Real", "Sim");
+        OxConfig.initialize();
+
+        boolTest = new LoggedDashboardBoolean("Test");
+
+        // ConfigurablePIDController x = new ConfigurablePIDController(0, 0, 0, "config/test");
+
         Logger.recordMetadata("RobotName", "Swerve Chassis");
         Logger.recordMetadata("Date", BuildConstants.BUILD_DATE);
 
@@ -74,6 +81,7 @@ public class Robot extends LoggedRobot {
         // This must be called from the robot's periodic
         // block in order for anything in the Command-based framework to work.
         CommandScheduler.getInstance().run();
+        OxConfig.runNTInterface();
     }
 
     /**
@@ -113,14 +121,5 @@ public class Robot extends LoggedRobot {
     public void testInit() {
         // Cancels all running commands at the start of test mode.
         CommandScheduler.getInstance().cancelAll();
-    }
-
-    public void simulationInit() {
-        SmartDashboard.putData("Field", Constants.FIELD);
-    }
-
-    @Override
-    public void simulationPeriodic() {
-        Constants.FIELD.setRobotPose(Swerve.get().getEstimatedPose());
     }
 }

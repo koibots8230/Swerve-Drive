@@ -38,7 +38,6 @@ public class Constants {
     );
 
     public static final boolean SET_REPLAY = false;
-    public static final Field2d FIELD = new Field2d();
 
     public static class HardwareConstants {
         // Swerve Modules

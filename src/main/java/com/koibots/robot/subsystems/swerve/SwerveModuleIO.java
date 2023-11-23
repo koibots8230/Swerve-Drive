@@ -37,6 +37,7 @@ public interface SwerveModuleIO {
   /** Run the drive motor at the specified voltage. */
   public void setDriveVoltage(double volts);
   public void setModuleAngle(double radians);
+  public void stopTurnMotor();
 
   /** Enable or disable brake mode on the drive motor. */
   public default void setDriveIdleMode(CANSparkMax.IdleMode mode) {}
