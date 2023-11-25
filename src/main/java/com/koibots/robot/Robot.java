@@ -29,7 +29,8 @@ public class Robot extends LoggedRobot {
         REPLAY
     }
 
-    @Getter private static final Mode mode = isReal() ? Mode.REAL : Constants.SET_REPLAY ? Mode.REPLAY : Mode.SIM;
+    @Getter
+    private static final Mode mode = isReal() ? Mode.REAL : Constants.SET_REPLAY ? Mode.REPLAY : Mode.SIM;
     /**
      * This function is run when the robot is first started up and should be used
      * for any

@@ -20,7 +20,7 @@ public class Trajectory {
      */
     public Trajectory(String name) {
         Gson gson = new Gson();
-        try (FileReader file = new FileReader(Filesystem.getDeployDirectory() + "choreo/" + name);) {
+        try (FileReader file = new FileReader(Filesystem.getDeployDirectory() + "choreo/" + name + ".json");) {
             states = Arrays.asList(gson.fromJson(new BufferedReader(file), TrajectoryState[].class));
         } catch (Exception e) {
             DriverStation.reportError("Failed to load Choreo Trajectory", e.getStackTrace());

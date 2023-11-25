@@ -22,7 +22,7 @@ public class SwerveAutonomousController extends Command {
     PIDController yErrorController;
     PIDController headingErrorController;
 
-    SwerveAutonomousController(Trajectory trajectory, boolean stop) {
+    public SwerveAutonomousController(Trajectory trajectory, boolean stop) {
         this.trajectory = trajectory;
         this.stop = stop;
         addRequirements(Swerve.get());

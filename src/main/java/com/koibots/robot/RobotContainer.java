@@ -2,7 +2,9 @@ package com.koibots.robot;
 
 import static com.koibots.robot.subsystems.Subsystems.Swerve;
 
+import com.koibots.lib.trajectory.Trajectory;
 import com.koibots.robot.command.FieldOrientedDrive;
+import com.koibots.robot.command.SwerveAutonomousController;
 import com.koibots.robot.subsystems.controller.*;
 
 import edu.wpi.first.wpilibj.DriverStation;
@@ -99,6 +101,6 @@ public class RobotContainer {
      * @return the command to run in autonomous
      */
     public Command getAutonomousCommand() {
-        return null;
+        return new SwerveAutonomousController(new Trajectory("Test"), true);
     }
 }
