@@ -1,6 +1,6 @@
 <component name="ProjectRunConfigurationManager">
   <configuration default="false" name="Launch Sysid" type="ShConfigurationType">
-    <option name="SCRIPT_TEXT" value="open ~/wpilib/2023/tools/SysId.app" />
+    <option name="SCRIPT_TEXT" value="open ~/wpilib/2024/tools/SysId.app" />
     <option name="INDEPENDENT_SCRIPT_PATH" value="true" />
     <option name="SCRIPT_PATH" value="" />
     <option name="SCRIPT_OPTIONS" value="" />

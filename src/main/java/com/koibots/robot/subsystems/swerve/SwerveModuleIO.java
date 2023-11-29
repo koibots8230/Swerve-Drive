@@ -13,36 +13,35 @@
 
 package com.koibots.robot.subsystems.swerve;
 
+import com.revrobotics.CANSparkMax;
 import edu.wpi.first.math.geometry.Rotation2d;
 import org.littletonrobotics.junction.AutoLog;
 
 public interface SwerveModuleIO {
-  @AutoLog
-  public static class SwerveModuleInputs {
-    public double drivePositionRad = 0.0;
-    public double driveVelocityRadPerSec = 0.0;
-    public double driveAppliedVolts = 0.0;
-    public double[] driveCurrentAmps = new double[] {};
+    @AutoLog
+    class SwerveModuleInputs {
+        public double drivePositionRad = 0.0;
+        public double driveVelocityRadPerSec = 0.0;
+        public double driveAppliedVolts = 0.0;
+        public double driveCurrentAmps = 0.0;
 
-    public Rotation2d turnAbsolutePosition = new Rotation2d();
-    public Rotation2d turnPosition = new Rotation2d();
-    public double turnVelocityRadPerSec = 0.0;
-    public double turnAppliedVolts = 0.0;
-    public double[] turnCurrentAmps = new double[] {};
-  }
+        public Rotation2d modulePosition = new Rotation2d();
+        public double turnVelocityRadPerSec = 0.0;
+        public double turnAppliedVolts = 0.0;
+        public double turnCurrentAmps = 0.0;
+    }
 
-  /** Updates the set of loggable inputs. */
-  public default void updateInputs(SwerveModuleInputs inputs) {}
+    /** Updates the set of loggable inputs. */
+    void updateInputs(SwerveModuleInputs inputs);
 
-  /** Run the drive motor at the specified voltage. */
-  public default void setDriveVoltage(double volts) {}
+    /** Run the drive motor at the specified voltage. */
+    void setDriveVoltage(double volts);
+    void setModuleAngle(double radians);
+    void stopTurnMotor();
 
-  /** Run the turn motor at the specified voltage. */
-  public default void setTurnVoltage(double volts) {}
+    /** Enable or disable brake mode on the drive motor. */
+    default void setDriveIdleMode(CANSparkMax.IdleMode mode) {}
 
-  /** Enable or disable brake mode on the drive motor. */
-  public default void setDriveBrakeMode(boolean enable) {}
-
-  /** Enable or disable brake mode on the turn motor. */
-  public default void setTurnBrakeMode(boolean enable) {}
+    /** Enable or disable brake mode on the turn motor. */
+    default void setTurnIdleMode(CANSparkMax.IdleMode mode) {}
 }
