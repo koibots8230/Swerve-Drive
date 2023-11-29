@@ -2,10 +2,10 @@ package com.koibots.robot.subsystems.controller;
 
 public class PS5Controller extends ControlScheme {
 
-    edu.wpi.first.wpilibj.PS5Controller controller;
+    edu.wpi.first.wpilibj.PS4Controller controller;
 
     public PS5Controller() {
-        controller = new edu.wpi.first.wpilibj.PS5Controller(0);
+        controller = new edu.wpi.first.wpilibj.PS4Controller(0);
     }
 
     @Override

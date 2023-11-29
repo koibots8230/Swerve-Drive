@@ -33,14 +33,14 @@ public class RobotContainer {
 
         public final Function<Double, Double> algorithm;
 
-         ScalingAlgorithm(Function<Double, Double> algorithm) {
+        ScalingAlgorithm(Function<Double, Double> algorithm) {
             this.algorithm = algorithm;
         }
     }
 
     LoggedDashboardChooser<ScalingAlgorithm> scalingChooser;
     LoggedDashboardChooser<Supplier<ControlScheme>> controllerChooser;
-    LoggedDashboardChooser<Object> autoChooser;
+    LoggedDashboardChooser<Command> autoChooser;
 
     /**
      * The container for the robot. Contains subsystems, OI devices, and commands.
@@ -67,6 +67,9 @@ public class RobotContainer {
                 scalingChooser.addOption("Cosine", ScalingAlgorithm.Cosine);
                 scalingChooser.addOption("Fancy", ScalingAlgorithm.CubedSquareRoot);
 
+                autoChooser.addDefaultOption(
+                        "Test", new SwerveAutonomousController(new Trajectory("Test"), true));
+
                 break;
         }
     }
@@ -80,6 +83,7 @@ public class RobotContainer {
      * passing it to a
      * {@link JoystickButton}.
      */
+
     public void configureButtonBindings() {
         ControlScheme controller = controllerChooser.get().get();
 
@@ -90,9 +94,7 @@ public class RobotContainer {
                         controller::angularVelocity,
                         controller::anglePosition,
                         controller::cross,
-                        scalingChooser.get().algorithm
-                )
-        );
+                        scalingChooser.get().algorithm));
     }
 
     /**
@@ -101,6 +103,6 @@ public class RobotContainer {
      * @return the command to run in autonomous
      */
     public Command getAutonomousCommand() {
-        return new SwerveAutonomousController(new Trajectory("Test"), true);
+        return autoChooser.get();
     }
 }
