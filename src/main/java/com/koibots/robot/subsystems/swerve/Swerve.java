@@ -2,6 +2,7 @@ package com.koibots.robot.subsystems.swerve;
 
 import com.koibots.robot.Constants;
 import com.koibots.robot.Robot;
+import com.koibots.robot.Constants.DriveConstants;
 
 import edu.wpi.first.math.estimator.SwerveDrivePoseEstimator;
 import edu.wpi.first.math.geometry.Pose2d;
@@ -22,6 +23,17 @@ public class Swerve extends SubsystemBase {
     public Swerve() {
         switch (Robot.getMode()) {
             case REAL:
+                swerveModules = new SwerveModule[] { // FL-FR-BL-BR
+                        new SwerveModule(new SwerveModuleIOSparkMax(DriveConstants.FRONT_LEFT_DRIVE_ID,
+                                DriveConstants.FRONT_LEFT_TURN_ID), 0),
+                        new SwerveModule(new SwerveModuleIOSparkMax(DriveConstants.FRONT_RIGHT_DRIVE_ID,
+                                DriveConstants.FRONT_RIGHT_TURN_ID), 1),
+                        new SwerveModule(new SwerveModuleIOSparkMax(DriveConstants.BACK_LEFT_DRIVE_ID,
+                                DriveConstants.BACK_LEFT_TURN_ID), 2),
+                        new SwerveModule(new SwerveModuleIOSparkMax(DriveConstants.BACK_RIGHT_DRIVE_ID,
+                                DriveConstants.BACK_RIGHT_TURN_ID), 3),
+                };
+
                 break;
             case SIM:
                 swerveModules = new SwerveModule[] {

@@ -16,6 +16,9 @@
     "**/.factorypath": true,
     "**/*~": true
   },
+  "files.associations": {
+    "json": "*.chor"
+  },
   "java.test.config": [
     {
       "name": "WPIlibUnitTests",
